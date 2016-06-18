@@ -1,0 +1,24 @@
+{
+	"name": "asch-dapps-sdk",
+	"version": "1.0.0",
+	"description": "Official SDK for the Asch decentralized application platform",
+	"repository": "git@github.com:LiskHQ/lisk-dapps-sdk.git",
+	"main": "index.js",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"author": "Boris Povod <boris@crypti.me>,Pavel Nekrasov <landgraf.paul@gmail.com>",
+	"license": "MIT",
+	"dependencies": {
+		"async": "*",
+		"browserify-bignum": "^1.3.0-2",
+		"bytebuffer": "^4.0.0",
+		"change-case": "*",
+		"crypto-browserify": "*",
+		"ed2curve": "^0.1.3",
+		"extend": "^3.0.0",
+		"ip": "*",
+		"js-nacl": "^0.6.0",
+		"z-schema": "https://github.com/sqfasd/z-schema/tarball/master"
+	}
+}
