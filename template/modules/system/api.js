@@ -30,7 +30,7 @@ Api.prototype.onBlockchainLoaded = function () {
 	private.loaded = true;
 
 	try {
-		var router = require("../../routes.json");
+		var router = require("json!../../routes.json");
 	} catch (e) {
 		library.logger("Failed to load routes.json");
 	}

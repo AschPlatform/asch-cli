@@ -200,11 +200,11 @@ private.withdrawalSync = function (cb) {
 								"table": "blocks",
 								"alias": "b",
 								"on": {
-									"b.\"id\"": "t.\"blockId\"",
+									"b.id": "t.blockId",
 								}
 							}
 						],
-						fields: [{"b.\"height\"": "height"}],
+						fields: [{"b.height": "height"}],
 						condition: {
 							"t.type": 2,
 							"t.id": res.id
@@ -224,14 +224,14 @@ private.withdrawalSync = function (cb) {
 									"table": "blocks",
 									"alias": "b",
 									"on": {
-										"b.\"id\"": "t.\"blockId\"",
+										"b.id": "t.blockId",
 									}
 								}
 							],
-							fields: [{"t.\"amount\"": "amount"}, {"t.\"id\"": "id"}, {"t.\"senderPublicKey\"": "senderPublicKey"}],
+							fields: [{"t.amount": "amount"}, {"t.id": "id"}, {"t.senderPublicKey": "senderPublicKey"}],
 							condition: {
 								"type": 2,
-								"b.\"height\"": {$gt: res[0].height}
+								"b.height": {$gt: res[0].height}
 							},
 							sort: {
 								"b.\"height\"": 1
@@ -254,16 +254,16 @@ private.withdrawalSync = function (cb) {
 								"table": "blocks",
 								"alias": "b",
 								"on": {
-									"b.\"id\"": "t.\"blockId\"",
+									"b.id": "t.blockId",
 								}
 							}
 						],
-						fields: [{"t.\"amount\"": "amount"}, {"t.\"id\"": "id"}, {"t.\"senderPublicKey\"": "senderPublicKey"}],
+						fields: [{"t.amount": "amount"}, {"t.id": "id"}, {"t.senderPublicKey": "senderPublicKey"}],
 						condition: {
 							"type": 2
 						},
 						sort: {
-							"b.\"height\"": 1
+							"b.height": 1
 						}
 					}, {amount: Number, id: String, senderPublicKey: String}, function (err, transactions) {
 						if (err) {
@@ -292,23 +292,23 @@ private.balanceSync = function (cb) {
 						"table": "blocks",
 						"alias": "b",
 						"on": {
-							"b.\"id\"": "t.\"blockId\""
+							"b.id": "t.blockId"
 						}
 					}, {
 						"type": "inner",
 						"table": "asset_dapptransfer",
 						"alias": "t_dt",
 						"on": {
-							"t.\"id\"": "t_dt.\"transactionId\""
+							"t.id": "t_dt.transactionId"
 						}
 					}
 				],
-				fields: [{"t_dt.\"src_id\"": "id"}],
+				fields: [{"t_dt.src_id": "id"}],
 				condition: {
 					type: 1
 				},
 				sort: {
-					"b.\"height\"": -1
+					"b.height": -1
 				},
 				limit: 1
 			}, {id: String}, function (err, found) {

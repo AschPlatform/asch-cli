@@ -1,5 +1,4 @@
 var ByteBuffer = require("bytebuffer");
-var crypto = require("crypto-browserify");
 var bignum = require("browserify-bignum");
 
 var private = {}, self = null,

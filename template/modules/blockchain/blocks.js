@@ -1,7 +1,6 @@
 var crypto = require("crypto-browserify");
 var path = require("path");
 var async = require("async");
-var util = require("util");
 var extend = require("extend");
 var timeHelper = require("../helpers/time.js");
 
@@ -17,7 +16,7 @@ function Blocks(cb, _library) {
 	library = _library;
 
 	try {
-		private.genesisBlock = require(path.join(__dirname, "../../genesis.json"));
+		private.genesisBlock = require("json!../../genesis.json");
 	} catch (e) {
 		library.logger("Failed to load genesis.json");
 	}
@@ -158,9 +157,9 @@ private.getIdSequence = function (height, cb) {
 			type: "union",
 			unionqueries: [{
 				table: "blocks",
-				fields: [{id: "id"}, {expression: "MAX(\"height\")", alias: "height"}],
+				fields: [{id: "id"}, {expression: "max(height)", alias: "height"}],
 				group: {
-					expression: "(CAST(\"height\" / 101 AS INTEGER) + (CASE WHEN \"height\" % 101 > 0 THEN 1 ELSE 0 END))",
+					expression: "(cast(height / 101 as integer) + (case when height % 101 > 0 then 1 else 0 end))",
 					having: {
 						height: {$lte: height}
 					}
@@ -659,7 +658,7 @@ Blocks.prototype.findCommon = function (cb, query) {
 		sort: {
 			height: 1
 		},
-		fields: [{expression: "MAX(\"height\")", alias: "height"}, "id", "prevBlockId"]
+		fields: [{expression: "max(height)", alias: "height"}, "id", "prevBlockId"]
 	}, {"height": Number, "id": String, "prevBlockId": String}, function (err, rows) {
 		if (err) {
 			return cb(err);
@@ -710,7 +709,7 @@ Blocks.prototype.getCommonBlock = function (height, peer, cb) {
 					modules.api.sql.select({
 						table: "blocks",
 						condition: condition,
-						fields: [{expression: "COUNT(\"id\")::bigint", alias: "count"}]
+						fields: [{expression: "count(id)", alias: "count"}]
 					}, {"count": Number}, function (err, rows) {
 						if (err || !rows.length) {
 							return next(err || "Block comparision failed");
@@ -734,7 +733,7 @@ Blocks.prototype.count = function (cb) {
 	modules.api.sql.select({
 		table: "blocks",
 		fields: [{
-			expression: "COUNT(\"id\")::bigint",
+			expression: "count(*)",
 			alias: "count"
 		}]
 	}, {count: Number}, function (err, rows) {

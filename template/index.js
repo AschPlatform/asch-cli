@@ -5,23 +5,106 @@ var async = require("async");
 var path = require("path");
 var ZSchema = require("z-schema");
 var extend = require("extend");
-var util = require("util");
+
 var modules = {};
 var ready = false;
 
-process.on("uncaughtException", function (err) {
-	console.log("Dapp system error", {message: err.message, stack: err.stack});
-});
+function Sandbox() {
+  var self = this;
+	self.callbacks = {};
+	self.callbackCounter = 1;
+	self.messageHandler = null;
 
-var d = require("domain").create();
-d.on("error", function (err) {
-	console.log("Domain master", {message: err.message, stack: err.stack});
-});
+  global.onmessage = function(data) {
+    console.log('receive ' + data);
+		var json;
+    if (typeof self.onMessage === 'function') {
+			try {
+				json = JSON.parse(data);
+			} catch (e) {
+				console.log('Failed to pase response from parent: ' + data + ', error: ' + e);
+				return;
+			}
 
-d.run(function () {
-	async.auto({
+			if (!json.callback_id) {
+				console.log('Incorrent response from parent, missed callback_id field');
+				return;
+			}
+			var callback_id;
+			try {
+				callback_id = parseInt(json.callback_id);
+			} catch (e) {
+				console.log("Failed to convert callback_id to integer");
+				return;
+			}
+			if (isNaN(callback_id)) {
+				console.log("Incorrect callback_id field, callback_id should be a number");
+				return;
+			}
+
+			if (json.type == "asch_response") {
+				var callback = self.callbacks[callback_id];
+				if (!callback) {
+					console.log("Can't find callback_id from parent");
+					return;
+				}
+				var error = json.error;
+				var response = json.response;
+				delete self.callbacks[callback_id];
+				setImmediate(callback, error, response);
+			} else if (json.type == "asch_call") {
+				var callback = function(err, result) {
+					var responseObj = {
+						type: "dapp_response",
+						callback_id: callback_id,
+						error: err,
+						response: result.response
+					}
+					try {
+						var responseString = JSON.stringify(responseObj);
+					} catch (e) {
+						console.log("Can't make response to parent: " + e.toString());
+						return;
+					}
+					global.postMessage(responseString);
+				}
+				var message = json.message;
+				if (typeof self.messageHandler === "function") {
+					setImmediate(self.messageHandler, message, callback, callback_id);
+				}
+			}
+    }
+  }
+
+	self._getCallbackCounter = function() {
+		return self.callbackCounter++;
+	}
+  self.onMessage = function(handler) {
+    self.messageHandler = handler;
+  }
+
+  self.sendMessage = function(msg, cb) {
+		var callback_id = self._getCallbackCounter();
+		var messageObj = {
+			type: "dapp_call",
+			callback_id: callback_id,
+			message: msg
+		};
+		try {
+			var messageString = JSON.stringify(messageObj);
+		} catch (e) {
+			console.log("Can't serialize dapp_call message: " + e.toString());
+			return;
+		}
+		self.callbacks[callback_id] = cb;
+    global.postMessage(messageString);
+  }
+}
+
+
+async.auto({
 		sandbox: function (cb) {
-			cb(null, process.binding("sandbox"));
+			cb(null, new Sandbox());
 		},
 
 		logger: function (cb) {
@@ -29,12 +112,12 @@ d.run(function () {
 		},
 
 		config: function (cb) {
-			cb(null, require("./config.json"));
+			cb(null, require("json!./config.json"));
 		},
 
 		scheme: ["logger", function (cb, scope) {
 			try {
-				var db = require("./blockchain.json");
+				var db = require("json!./blockchain.json");
 			} catch (e) {
 				scope.logger("Failed to load blockchain.json");
 			}
@@ -143,8 +226,8 @@ d.run(function () {
 		},
 
 		modules: ["sandbox", "config", "logger", "bus", "sequence", function (cb, scope) {
-			var module = path.join(__dirname, process.argv[3] || "modules.full.json");
-			var lib = require(module);
+			// var module = path.join(__dirname, process.argv[3] || "modules.full.json");
+			var lib = require("json!./modules.full.json");
 
 			var tasks = [];
 
@@ -153,20 +236,14 @@ d.run(function () {
 				var namespace = raw[0];
 				var moduleName = raw[1];
 				tasks.push(function (cb) {
-					var d = require("domain").create();
-					d.on("error", function (err) {
-						scope.logger("Domain " + moduleName, {message: err.message, stack: err.stack});
-					});
-					d.run(function () {
-						var library = require(lib[path]);
-						var obj = new library(cb, scope);
-						modules[namespace] = modules[namespace] || {};
-						modules[namespace][moduleName] = obj;
-					});
+					var library = require(lib[path]);
+					var obj = new library(cb, scope);
+					modules[namespace] = modules[namespace] || {};
+					modules[namespace][moduleName] = obj;
 				});
 			})
 
-			async.parallel(tasks, function (err) {
+			async.series(tasks, function (err) {
 				cb(err, modules);
 			});
 		}],
@@ -180,4 +257,3 @@ d.run(function () {
 			cb();
 		}]
 	});
-});

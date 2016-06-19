@@ -1,6 +1,4 @@
 var extend = require("extend");
-var util = require("util");
-var crypto = require("crypto-browserify");
 var bignum = require("browserify-bignum");
 
 var private = {}, self = null,
@@ -63,19 +61,19 @@ Token.prototype.getTokens = function (cb, query) {
 					"table": "transactions",
 					"alias": "t",
 					"on": {
-						"tkn.\"transactionId\"": "t.\"id\""
+						"tkn.transactionId": "t.id"
 					}
 				}
 			],
 			fields: [
-				{"tkn.\"transactionId\"": "transactionId"},
-				{"tkn.\"name\"": "name"},
-				{"t.\"senderId\"": "owner"},
-				{"tkn.\"fund\"": "fund"},
-				{"tkn.\"description\"": "description"},
+				{"tkn.transactionId": "transactionId"},
+				{"tkn.name": "name"},
+				{"t.senderId": "owner"},
+				{"tkn.fund": "fund"},
+				{"tkn.description": "description"},
 				{
 					"name": "balance",
-					expression: "tkn.\"fund\" - IFNULL((SELECT SUM(\"amount\")::bigint AS \"amount\" FROM dapp_" + res.dappid + "_transactions WHERE \"senderId\" = t.\"senderId\" AND \"token\" = tkn.\"name\"), 0)"
+					expression: "tkn.fund - IFNULL((SELECT SUM(amount) AS amount FROM dapp_" + res.dappid + "_transactions WHERE senderId = t.senderId AND token = tkn.name), 0)"
 				}
 			]
 		}, {

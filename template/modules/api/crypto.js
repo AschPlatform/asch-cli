@@ -1,4 +1,3 @@
-var ed2curve = require("ed2curve");
 var nacl_factory = require("js-nacl");
 var crypto = require("crypto-browserify");
 var bignum = require("browserify-bignum");
@@ -23,11 +22,15 @@ function Crypto(cb, _library) {
 
 
 private.convertPublicKey = function (publicKey) {
-	return ed2curve.convertPublicKey(publicKey)
+	// TODO(use master api)
+	//return ed2curve.convertPublicKey(publicKey)
+	return "";
 }
 
 private.convertPrivateKey = function (privateKey) {
-	return ed2curve.convertSecretKey(privateKey);
+	// TODO(use master api)
+	//return ed2curve.convertSecretKey(privateKey);
+	return "";
 }
 
 private.encrypt = function (message, nonce, senderPrivateKey, recipientPublicKey) {
