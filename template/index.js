@@ -16,7 +16,7 @@ function Sandbox() {
 	self.messageHandler = null;
 
   global.onmessage = function(data) {
-    console.log('receive ' + data);
+    // console.log('receive ' + data);
 		var json;
     if (typeof self.onMessage === 'function') {
 			try {
