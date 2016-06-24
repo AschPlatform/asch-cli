@@ -94,7 +94,6 @@ Sql.prototype.select = function (request, map, cb) {
 	};
 
 	library.sandbox.sendMessage(message, function (err, rows) {
-		console.log('sandbox sql return', err, rows);
 		if (map && !err) {
 			rows = util.isArray(map) ?
 				rows.map(private.row2object, map) :

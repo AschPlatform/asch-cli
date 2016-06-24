@@ -17,7 +17,7 @@
     "crypto-browserify": "*",
     "extend": "^3.0.0",
     "ip": "*",
-    "js-nacl": "^0.6.0",
+    "js-nacl": "https://github.com/sqfasd/js-nacl/tarball/master",
     "json-loader": "https://github.com/sqfasd/json-loader/tarball/master",
     "z-schema": "https://github.com/sqfasd/z-schema/tarball/master"
   }
