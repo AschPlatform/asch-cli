@@ -7,7 +7,7 @@ var ByteBuffer = require('bytebuffer');
 var sender = accounts.account(cryptoLib.generateSecret());
 
 function getBytes(block) {
-	var size = 4 + 4 + 8 + 4 + 4 + 8 + 8 + 4 + 4 + 4 + 32 + 32 + 64;
+	var size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
 
 	var bb = new ByteBuffer(size, true);
 	bb.writeInt(block.version);
@@ -28,6 +28,7 @@ function getBytes(block) {
 	bb.writeInt(block.numberOfTransactions);
 	bb.writeLong(block.totalAmount);
 	bb.writeLong(block.totalFee);
+	bb.writeLong(block.reward);
 
 	bb.writeInt(block.payloadLength);
 
@@ -137,19 +138,20 @@ module.exports = {
 
 		transactions.push(voteTransaction);
 
-		//make dapps
-		var dappTransaction = {
-			type: 5,
-			amount: 0,
-			fee: 0,
-			timestamp: 0,
-			recipientId: null,
-			senderId: genesisAccount.address,
-			senderPublicKey: genesisAccount.keypair.publicKey,
-			asset: {
-				dapp: dapp
-			}
-		};
+		var dappTransaction = null;
+		if (dapp) {
+			dappTransaction = {
+				type: 5,
+				amount: 0,
+				fee: 0,
+				timestamp: 0,
+				recipientId: null,
+				senderId: genesisAccount.address,
+				senderPublicKey: genesisAccount.keypair.publicKey,
+				asset: {
+					dapp: dapp
+				}
+			};
 
 		bytes = transactionsLib.getTransactionBytes(dappTransaction);
 		dappTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
@@ -157,7 +159,7 @@ module.exports = {
 		dappTransaction.id = cryptoLib.getId(bytes);
 
 		transactions.push(dappTransaction);
-
+		}
 
 		transactions = transactions.sort(function compare(a, b) {
 			if (a.type == 1) return 1;
@@ -180,6 +182,7 @@ module.exports = {
 			version: 0,
 			totalAmount: totalAmount,
 			totalFee: 0,
+			reward: 0,
 			payloadHash: payloadHash.toString('hex'),
 			timestamp: 0,
 			numberOfTransactions: transactions.length,

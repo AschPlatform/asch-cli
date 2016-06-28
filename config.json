@@ -32,9 +32,6 @@
     "verifyOnLoading": true,
     "loadPerIteration": 5000
   },
-  "sia": {
-    "peers": []
-  },
   "ssl": {
     "enabled": false,
     "options": {

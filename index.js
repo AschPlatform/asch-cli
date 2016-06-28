@@ -690,6 +690,7 @@ function genPubkey() {
 	], function (result) {
 		var account = accountHelper.account(result.secret.trim());
 		console.log("Public key: " + account.keypair.publicKey);
+		console.log("Address: " + account.address);
 	});
 }
 
@@ -719,6 +720,31 @@ function genAccount() {
 		console.log(accounts);
 		console.log("Done");
 	});
+}
+
+function writeFileSync(file, obj) {
+	var content = (typeof obj === "string" ? obj : JSON.stringify(obj, null, 2));
+	fs.writeFileSync(file, content, "utf8");
+}
+
+function appendFileSync(file, obj) {
+	var content = (typeof obj === "string" ? obj : JSON.stringify(obj, null, 2));
+	fs.appendFileSync(file, content, "utf8");
+}
+
+function genGenesisBlock() {
+	var genesisAccount = accountHelper.account(cryptoLib.generateSecret());
+	var newBlockInfo = blockHelper.new(genesisAccount);
+	var delegateSecrets = newBlockInfo.delegates.map(function(i) {
+		return i.secret;
+	});
+	writeFileSync("./genesisBlock.json", newBlockInfo.block);
+	
+	var logFile = "./genGenesisBlock.log";
+	writeFileSync(logFile, "genesis account:\n");
+	appendFileSync(logFile, genesisAccount);
+	appendFileSync(logFile, "\ndelegates secrets:\n");
+	appendFileSync(logFile, delegateSecrets);
 }
 
 function main() {
@@ -778,6 +804,13 @@ function main() {
 			} else {
 				console.log("'node crypto -h' to get help");
 			}
+		});
+		
+  program
+	  .command("genesis")
+		.description("generate genesis block")
+		.action(function(options) {
+			genGenesisBlock();
 		});
 
 	if (!process.argv.slice(2).length) {

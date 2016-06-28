@@ -89,7 +89,7 @@ Transaction.prototype.getBytes = function (trs, skipSignature) {
 		}
 
 		if (trs.recipientId) {
-			var recipient = trs.recipientId.slice(0, -1);
+			var recipient = trs.recipientId.slice(0);
 			recipient = bignum(recipient).toBuffer({size: 8});
 
 			for (var i = 0; i < 8; i++) {
