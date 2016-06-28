@@ -562,7 +562,7 @@ function withdrawalDapp() {
 			name: "dappId",
 			message: "Enter DApp id",
 			validate: function (value) {
-				var isAddress = /^[0-9]$/g;
+				var isAddress = /^[0-9]+$/g;
 				return isAddress.test(value);
 			},
 			required: true
