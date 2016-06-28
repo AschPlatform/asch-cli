@@ -27,7 +27,7 @@ InsideTransfer.prototype.calculateFee = function (trs) {
 }
 
 InsideTransfer.prototype.verify = function (trs, sender, cb, scope) {
-	var isAddress = /^[0-9]+[L|l]$/g;
+	var isAddress = /^[0-9]+$/g;
 	if (!trs.recipientId || !isAddress.test(trs.recipientId)) {
 		return cb("Invalid recipient");
 	}
@@ -36,7 +36,7 @@ InsideTransfer.prototype.verify = function (trs, sender, cb, scope) {
 		return cb("Invalid transaction amount");
 	}
 
-	if (trs.token != "LISK") {
+	if (trs.token != "XAS") {
 		var tokenId = modules.contracts.token.findToken(trs.token);
 		if (!tokenId) {
 			return cb("Token does not exist");
@@ -51,16 +51,16 @@ InsideTransfer.prototype.getBytes = function (trs) {
 }
 
 InsideTransfer.prototype.apply = function (trs, sender, cb, scope) {
-	if (trs.token == "LISK") {
+	if (trs.token == "XAS") {
 		if (sender.balance[trs.token] < trs.amount + trs.fee) {
-			return setImmediate(cb, "Account has no LISK: " + trs.id);
+			return setImmediate(cb, "Account has no XAS: " + trs.id);
 		}
 	} else {
 		if (sender.balance[trs.token] < trs.amount) {
 			return setImmediate(cb, "Account has no " + trs.token + ": " + trs.id);
 		}
-		if (sender.balance["LISK"] < trs.fee) {
-			return setImmediate(cb, "Account has no LISK: " + trs.id);
+		if (sender.balance["XAS"] < trs.fee) {
+			return setImmediate(cb, "Account has no XAS: " + trs.id);
 		}
 	}
 
@@ -68,7 +68,7 @@ InsideTransfer.prototype.apply = function (trs, sender, cb, scope) {
 		function (cb) {
 			modules.blockchain.accounts.mergeAccountAndGet({
 				address: sender.address,
-				balance: {"LISK": -trs.fee}
+				balance: {"XAS": -trs.fee}
 			}, cb, scope);
 		},
 		function (cb) {
@@ -97,7 +97,7 @@ InsideTransfer.prototype.undo = function (trs, sender, cb, scope) {
 		function (cb) {
 			modules.blockchain.accounts.undoMerging({
 				address: sender.address,
-				balance: {"LISK": -trs.fee}
+				balance: {"XAS": -trs.fee}
 			}, cb, scope);
 		},
 		function (cb) {
@@ -122,16 +122,16 @@ InsideTransfer.prototype.undo = function (trs, sender, cb, scope) {
 }
 
 InsideTransfer.prototype.applyUnconfirmed = function (trs, sender, cb, scope) {
-	if (trs.token == "LISK") {
+	if (trs.token == "XAS") {
 		if (sender.u_balance[trs.token] < trs.amount + trs.fee) {
-			return setImmediate(cb, "Account does not have enough LISK: " + trs.id);
+			return setImmediate(cb, "Account does not have enough XAS: " + trs.id);
 		}
 	} else {
 		if (sender.u_balance[trs.token] < trs.amount) {
 			return setImmediate(cb, "Account does not have enough " + trs.token + ": " + trs.id);
 		}
-		if (sender.u_balance["LISK"] < trs.fee) {
-			return setImmediate(cb, "Account does not have enough LISK: " + trs.id);
+		if (sender.u_balance["XAS"] < trs.fee) {
+			return setImmediate(cb, "Account does not have enough XAS: " + trs.id);
 		}
 	}
 
@@ -139,7 +139,7 @@ InsideTransfer.prototype.applyUnconfirmed = function (trs, sender, cb, scope) {
 		function (cb) {
 			modules.blockchain.accounts.mergeAccountAndGet({
 				address: sender.address,
-				u_balance: {"LISK": -trs.fee}
+				u_balance: {"XAS": -trs.fee}
 			}, cb, scope);
 		},
 		function (cb) {
@@ -168,7 +168,7 @@ InsideTransfer.prototype.undoUnconfirmed = function (trs, sender, cb, scope) {
 		function (cb) {
 			modules.blockchain.accounts.undoMerging({
 				address: sender.address,
-				u_balance: {"LISK": -trs.fee}
+				u_balance: {"XAS": -trs.fee}
 			}, cb, scope);
 		},
 		function (cb) {
