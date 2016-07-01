@@ -1,4 +1,5 @@
 var Api = require('../helpers/api.js');
+var aschJS = require('asch-js');
 
 var api = new Api();
 
@@ -155,8 +156,6 @@ function getTransactions(options) {
     offset: options.offset,
     type: options.type,
     senderPublicKey: options.senderPublicKey,
-    ownerPublicKey: options.ownerPublicKey,
-    ownerAddress: options.ownerAddress,
     senderId: options.senderId,
     recipientId: options.recipientId,
     amount: options.amount,
@@ -175,15 +174,65 @@ function getTransaction(id) {
 }
 
 function sendMoney(options) {
-  var params = {
-    secret: options.secret,
-    secondSecret: options.secondSecret,
-    recipientId: options.to,
-    amount: Number(options.amount)
-  };
-  api.put('/api/transactions/', params, function (err, result) {
-    console.log(err || result);
+  // var params = {
+  //   secret: options.secret,
+  //   secondSecret: options.secondSecret,
+  //   recipientId: options.to,
+  //   amount: Number(options.amount)
+  // };
+  // api.put('/api/transactions/', params, function (err, result) {
+  //   console.log(err || result);
+  // });
+  var trs = aschJS.transaction.createTransaction(
+    options.to,
+    options.amount * 100000000,
+    options.secret,
+    options.secondSecret
+  );
+  api.broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.success);
   });
+}
+
+function registerDelegate(options) {
+  // var params = {
+  //   secret: options.secret,
+  //   username: options.username,
+  //   secondSecret: options.secondSecret,
+  // };
+  // api.put('/api/delegates/', params, function (err, result) {
+  //   console.log(err || result);
+  // });
+  var trs = aschJS.delegate.createDelegate(
+    options.secret,
+    options.username,
+    options.secondSecret
+  );
+  api.broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.success);
+  });
+}
+
+function vote(secret, publicKeys, op, secondSecret) {
+  var votes = publicKeys.split(',').map(function (el) {
+    return op + el;
+  });
+  var trs = aschJS.vote.createVote(
+    secret,
+    votes,
+    secondSecret
+  );
+  api.broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.success);
+  });
+}
+
+function upvote(options) {
+  vote(options.secret, options.publicKeys, '+', options.secondSecret);
+}
+
+function downvote(options) {
+  vote(options.secret, options.publicKeys, '-', options.secondSecret);
 }
 
 module.exports = function(program) {
@@ -303,8 +352,6 @@ module.exports = function(program) {
     .option("-a, --amount <n>", "")
     .option("-f, --fee <n>", "")
     .option("--senderPublicKey <key>", "")
-    .option("--ownerPublicKey <key>", "")
-    .option("--ownerAddress <address>", "")
     .option("--senderId <id>", "")
     .option("--recipientId <id>", "")
     .action(getTransactions);
@@ -322,4 +369,28 @@ module.exports = function(program) {
     .option("-a, --amount <n>", "")
     .option("-t, --to <address>", "")
     .action(sendMoney);
+  
+  program
+    .command("registerdelegate")
+    .description("register delegate")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-u, --username <username>", "")
+    .action(registerDelegate);
+    
+  program
+    .command("upvote")
+    .description("vote for delegates")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-p, --publicKeys <public key list>", "")
+    .action(upvote);
+    
+  program
+    .command("downvote")
+    .description("cancel vote for delegates")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-p, --publicKeys <public key list>", "")
+    .action(downvote);
 }
