@@ -24,7 +24,7 @@ function resultHandler(cb) {
 function Api(options) {
   this.options = options || {};
   this.host = this.options.host || "127.0.0.1";
-  this.port = this.options.port || 7000;
+  this.port = this.options.port || 4096;
   this.baseUrl = "http://" + this.host + ":" + this.port;
 }
 

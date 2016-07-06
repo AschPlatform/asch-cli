@@ -1,46 +1,50 @@
 var Api = require('../helpers/api.js');
 var aschJS = require('asch-js');
 
-var api = new Api();
+var globalOptions;
+
+function getApi() {
+  return new Api({host: globalOptions.host, port: globalOptions.port});
+}
 
 function pretty(obj) {
   return JSON.stringify(obj, null, 2);
 }
 
 function openAccount(secret) {
-  api.post('/api/accounts/open', {secret: secret}, function (err, result) {
+  getApi().post('/api/accounts/open', {secret: secret}, function (err, result) {
     console.log(err || pretty(result.account));
   });
 }
 
 function openAccountByPublicKey(publicKey) {
-  api.post('/api/accounts/open2', {publicKey: publicKey}, function (err, result) {
+  getApi().post('/api/accounts/open2', {publicKey: publicKey}, function (err, result) {
     console.log(err || pretty(result.account));
   });
 }
 
 function getHeight() {
-  api.get('/api/blocks/getHeight', function (err, result) {
+  getApi().get('/api/blocks/getHeight', function (err, result) {
     console.log(err || result.height);
   });
 }
 
 function getBlockStatus() {
-  api.get('/api/blocks/getStatus', function (err, result) {
+  getApi().get('/api/blocks/getStatus', function (err, result) {
     console.log(err || pretty(result));
   });
 }
 
 function getBalance(address) {
   var params = {address: address};
-  api.get('/api/accounts/getBalance', params, function (err, result) {
+  getApi().get('/api/accounts/getBalance', params, function (err, result) {
     console.log(err || result.balance);
   });
 }
 
 function getAccount(address) {
   var params = {address: address};
-  api.get('/api/accounts/', params, function (err, result) {
+  getApi().get('/api/accounts/', params, function (err, result) {
     console.log(err || pretty(result.account));
   });
 }
@@ -51,7 +55,7 @@ function getVotedDelegates(address, options) {
     limit: options.limit,
     offset: options.offset
   };
-  api.get('/api/accounts/delegates', params, function (err, result) {
+  getApi().get('/api/accounts/delegates', params, function (err, result) {
     console.log(err || result);
   });
 }
@@ -62,34 +66,34 @@ function getDelegates(options) {
     offset: options.offset,
     orderBy: options.sort || "rate:asc"
   };
-  api.get('/api/delegates/', params, function (err, result) {
+  getApi().get('/api/delegates/', params, function (err, result) {
     console.log(err || pretty(result.delegates));
   });
 }
 
 function getDelegatesCount() {
-  api.get('/api/delegates/count', function (err, result) {
+  getApi().get('/api/delegates/count', function (err, result) {
     console.log(err || result.count);
   });
 }
 
 function getVoters(publicKey) {
   var params = {publicKey: publicKey};
-  api.get('/api/delegates/voters', params, function (err, result) {
+  getApi().get('/api/delegates/voters', params, function (err, result) {
     console.log(err || pretty(result.accounts));
   });
 }
 
 function getDelegateByPublicKey(publicKey) {
   var params = {publicKey: publicKey};
-  api.get('/api/delegates/get', params, function (err, result) {
+  getApi().get('/api/delegates/get', params, function (err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
 
 function getDelegateByUsername(username) {
   var params = {username: username};
-  api.get('/api/delegates/get', params, function (err, result) {
+  getApi().get('/api/delegates/get', params, function (err, result) {
     console.log(err || pretty(result.delegate));
   });
 }
@@ -103,21 +107,21 @@ function getBlocks(options) {
     totalFee: options.totalFee,
     reward: options.reward
   };
-  api.get('/api/blocks/', params, function (err, result) {
+  getApi().get('/api/blocks/', params, function (err, result) {
     console.log(err || pretty(result));
   });
 }
 
 function getBlockById(id) {
   var params = {id: id};
-  api.get('/api/blocks/get', params, function (err, result) {
+  getApi().get('/api/blocks/get', params, function (err, result) {
     console.log(err || pretty(result.block));
   });
 }
 
 function getBlockByHeight(height) {
   var params = {height: height};
-  api.get('/api/blocks/get', params, function (err, result) {
+  getApi().get('/api/blocks/get', params, function (err, result) {
     console.log(err || pretty(result.block));
   });
 }
@@ -133,7 +137,7 @@ function getPeers(options) {
     version: options.version
   };
   // var liskOptions = {host:'login.lisk.io', port:80};
-  api.get('/api/peers/', params, function (err, result) {
+  getApi().get('/api/peers/', params, function (err, result) {
     console.log(err || pretty(result.peers));
   });
 }
@@ -143,7 +147,7 @@ function getUnconfirmedTransactions(options) {
     senderPublicKey: options.key,
     address: options.address
   };
-  api.get('/api/transactions/unconfirmed', params, function (err, result) {
+  getApi().get('/api/transactions/unconfirmed', params, function (err, result) {
     console.log(err || pretty(result.transactions));
   });
 }
@@ -161,14 +165,14 @@ function getTransactions(options) {
     amount: options.amount,
     fee: options.fee
   };
-  api.get('/api/transactions/', params, function (err, result) {
+  getApi().get('/api/transactions/', params, function (err, result) {
     console.log(err || pretty(result.transactions));
   });
 }
 
 function getTransaction(id) {
   var params = {id: id};
-  api.get('/api/transactions/get', params, function (err, result) {
+  getApi().get('/api/transactions/get', params, function (err, result) {
     console.log(err || pretty(result.transaction));
   });
 }
@@ -180,7 +184,7 @@ function sendMoney(options) {
   //   recipientId: options.to,
   //   amount: Number(options.amount)
   // };
-  // api.put('/api/transactions/', params, function (err, result) {
+  // getApi().put('/api/transactions/', params, function (err, result) {
   //   console.log(err || result);
   // });
   var trs = aschJS.transaction.createTransaction(
@@ -189,7 +193,7 @@ function sendMoney(options) {
     options.secret,
     options.secondSecret
   );
-  api.broadcastTransaction(trs, function (err, result) {
+  getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.success);
   });
 }
@@ -200,7 +204,7 @@ function registerDelegate(options) {
   //   username: options.username,
   //   secondSecret: options.secondSecret,
   // };
-  // api.put('/api/delegates/', params, function (err, result) {
+  // getApi().put('/api/delegates/', params, function (err, result) {
   //   console.log(err || result);
   // });
   var trs = aschJS.delegate.createDelegate(
@@ -208,7 +212,7 @@ function registerDelegate(options) {
     options.username,
     options.secondSecret
   );
-  api.broadcastTransaction(trs, function (err, result) {
+  getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.success);
   });
 }
@@ -222,7 +226,7 @@ function vote(secret, publicKeys, op, secondSecret) {
     votes,
     secondSecret
   );
-  api.broadcastTransaction(trs, function (err, result) {
+  getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.success);
   });
 }
@@ -236,6 +240,8 @@ function downvote(options) {
 }
 
 module.exports = function(program) {
+  globalOptions = program;
+  
   program
     .command("getheight")
     .description("get block height")
