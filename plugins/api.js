@@ -239,6 +239,13 @@ function downvote(options) {
   vote(options.secret, options.publicKeys, '-', options.secondSecret);
 }
 
+function setSecondSecret(options) {
+  var trs = aschJS.signature.createSignature(options.secret, options.secondSecret);
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.success);
+  });
+}
+
 module.exports = function(program) {
   globalOptions = program;
   
@@ -399,4 +406,11 @@ module.exports = function(program) {
     .option("-s, --secondSecret <secret>", "")
     .option("-p, --publicKeys <public key list>", "")
     .action(downvote);
+    
+  program
+    .command("setsecondsecret")
+    .description("set second secret")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .action(setSecondSecret);
 }
