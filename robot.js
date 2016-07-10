@@ -5,6 +5,7 @@ var accountHelper = require("./helpers/account.js");
 
 var genesisSecret = "narrow large ribbon hurt leader dream marriage evidence census attack fiction cube";
 var api = new Api({host: "45.32.248.33"});
+//var api = new Api();
 
 function sendMoney(options, cb) {
   var params = {
@@ -35,4 +36,4 @@ function loop(delay) {
   });
 }
 
-loop(2000);
+loop(50);
