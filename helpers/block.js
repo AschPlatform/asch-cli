@@ -88,7 +88,7 @@ module.exports = {
 			var delegate = accounts.account(cryptoLib.generateSecret());
 			delegates.push(delegate);
 
-			var username = "genesisDelegate" + (i+1);
+			var username = "asch_g" + (i+1);
 
 			var transaction = {
 				type: 2,
