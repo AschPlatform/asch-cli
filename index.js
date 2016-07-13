@@ -9,7 +9,7 @@ function main() {
 		.option('-H, --host <host>', 'Specify the hostname or ip of the node, default: 127.0.0.1')
 		.option('-p, --port <port>', 'Specify the port of the node, default: 4096')
 	
-	var plugins = fs.readdirSync('./plugins');
+	var plugins = fs.readdirSync(path.join(__dirname, 'plugins'));
 	plugins.forEach(function (el) {
 		require('./plugins/' + el)(program);
 	});
