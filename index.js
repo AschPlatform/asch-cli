@@ -2,6 +2,7 @@
 var program = require("commander");
 
 var fs = require("fs");
+var path = require("path");
 var package = require('./package.json');
 
 function main() {
