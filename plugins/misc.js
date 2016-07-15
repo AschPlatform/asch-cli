@@ -74,7 +74,7 @@ function peerstat() {
 				errList.push({peers: errorMap[k], error: k});
 			}
 			normalList.sort(function (l, r) {
-				return l.height > r.height;
+				return l.height < r.height;
 			});
 			
 			function joinPeerAddrs(peers) {
@@ -89,7 +89,7 @@ function peerstat() {
 				if (i == 0) {
 					console.log(item.peers.length + ' height: ' + item.height);
 				} else {
-					console.log(item.height, joinPeerAddrs(item.peers));
+					console.log(item.peers.length + ' height: ' + item.height, joinPeerAddrs(item.peers));
 				}
 			}
 			for (var i = 0; i < errList.length; ++i) {
