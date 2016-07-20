@@ -5,6 +5,7 @@ var blockHelper = require("../helpers/block.js");
 var cryptoLib = require("../lib/crypto.js");
 var dappHelper = require("../helpers/dapp.js");
 var Api = require('../helpers/api.js');
+var AschUtils = require('asch-js').utils;
 
 var globalOptions;
 
@@ -100,6 +101,54 @@ function peerstat() {
   });
 }
 
+function delegatestat() {
+	var api = new Api({host: globalOptions.host, port: globalOptions.port});
+	api.get('/api/delegates', {}, function (err, result) {
+    if (err) {
+			console.log('Failed to get delegates', err);
+			return;
+		}
+		async.mapLimit(result.delegates, 10, function (delegate, next) {
+			var params = {
+				generatorPublicKey: delegate.publicKey,
+				limit: 1,
+				offset: 0,
+				orderBy: 'height:desc'
+			};
+			api.get('/api/blocks', params, function (err, result) {
+				if (err) {
+					next(err);
+				} else {
+					next(null, {delegate: delegate, block: result.blocks[0]});
+				}
+			});
+		}, function (err, delegates) {
+			if (err) {
+				console.log('Failed to get forged block', err);
+				return;
+			}
+			delegates = delegates.sort(function (l, r) {
+				return l.block.timestamp - r.block.timestamp;
+			});
+			console.log("name\taddress\trate\tapproval\tproductivity\tproduced\theight\tid\ttime");
+			for (var i in delegates) {
+				var d = delegates[i].delegate;
+				var b = delegates[i].block;
+				console.log('%s\t%s\t%d\t%s%%\t%s%%\t%d\t%d\t%s\t%s(%s)',
+						d.username,
+						d.address,
+						d.rate,
+						d.approval,
+						d.productivity,
+						d.producedblocks,
+						b.height,
+						b.id,
+						AschUtils.format.fullTimestamp(b.timestamp),
+						AschUtils.format.timeAgo(b.timestamp));
+			}
+		});
+	});
+}
 
 module.exports = function(program) {
 	globalOptions = program;
@@ -111,6 +160,11 @@ module.exports = function(program) {
 		
   program
 	  .command("peerstat")
-		.description("get blockchain of all peers")
+		.description("analyze block height of all peers")
 		.action(peerstat);
+		
+  program
+	  .command("delegatestat")
+		.description("analyze delegates status")
+		.action(delegatestat);
 }
