@@ -105,7 +105,8 @@ function getBlocks(options) {
     offset: options.offset,
     totalAmount: options.totalAmount,
     totalFee: options.totalFee,
-    reward: options.reward
+    reward: options.reward,
+    generatorPublicKey: options.generatorPublicKey
   };
   getApi().get('/api/blocks/', params, function (err, result) {
     console.log(err || pretty(result));
@@ -322,6 +323,7 @@ module.exports = function(program) {
     .option("-r, --reward <n>", "")
     .option("-f, --totalFee <n>", "")
     .option("-a, --totalAmount <n>", "")
+    .option("-g, --generatorPublicKey <publicKey>", "")
     .option("-s, --sort <field:mode>", "height:asc, totalAmount:asc, totalFee:asc")
     .action(getBlocks);
     
