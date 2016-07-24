@@ -34,12 +34,16 @@ function getBytes(block, skipSignature) {
 		bb.writeByte(pb[i]);
 	}
 
-	var pb = bignum(block.pointId).toBuffer({size: '8'});
-	for (var i = 0; i < 8; i++) {
-		bb.writeByte(pb[i]);
+	if (block.pointId) {
+		var pb = bignum(block.pointId).toBuffer({ size: '8' });
+		for (var i = 0; i < 8; i++) {
+			bb.writeByte(pb[i]);
+		}
 	}
 
-	bb.writeInt(block.pointHeight);
+	if (block.pointHeight) {
+		bb.writeInt(block.pointHeight);	
+	}
 
 	bb.writeInt(block.count);
 
@@ -57,7 +61,7 @@ function getBytes(block, skipSignature) {
 }
 
 module.exports = {
-	new: function (genesisAccount, genesisBlock, publicKeys) {
+	new: function (genesisAccount, publicKeys) {
 		var delegates = publicKeys.map(function (key) {
 			return "+" + key;
 		})
@@ -78,8 +82,8 @@ module.exports = {
 		var block = {
 			delegate: genesisAccount.keypair.publicKey,
 			height: 1,
-			pointId: genesisBlock.id,
-			pointHeight: 1,
+			pointId: null,
+			pointHeight: null,
 			transactions: [],
 			timestamp: 0
 		}

@@ -41,13 +41,11 @@
 			{
 				"name": "pointId",
 				"type": "String",
-				"length": 21,
-				"not_null": true
+				"length": 21
 			},
 			{
 				"name": "pointHeight",
-				"type": "BigInt",
-				"not_null": true
+				"type": "BigInt"
 			},
 			{
 				"name": "delegate",

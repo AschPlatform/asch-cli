@@ -9,33 +9,34 @@ var npm = require("npm");
 var request = require("request");
 var valid_url = require("valid-url");
 var fsExtra = require('fs-extra');
+var AschJS = require('asch-js');
 var accountHelper = require("../helpers/account.js");
 var blockHelper = require("../helpers/block.js");
 var dappHelper = require("../helpers/dapp.js");
+var Api = require("../helpers/api.js");
 
 var templatePath = path.join(__dirname, "..", "template");
 
+var dappCategories = [
+	"Common",
+	"Business",
+	"Catalogs",
+	"Education",
+	"Entertainment",
+	"Multimedia",
+	"Networking",
+	"Utilities",
+	"Games"
+];
 function addDapp() {
 	var account;
-	var newGenesisBlock;
-	var genesisBlock = null;
-	var block, dapp, delegates;
+	var secondSecret;
+	var dappParams;
+	var dappTrs;
 	var dappBlock;
 	var dappsPath = path.join(".", "dapps");
 	var dappPath;
 	async.series([
-		function(next) {
-			inquirer.prompt([
-				{
-					type: "confirm",
-					name: "confirmed",
-					message: "Existing blockchain will be replaced, are you sure?",
-					default: false
-				}
-			], function(result) {
-				next(!result.confirmed);
-			});
-		},
 		function(next) {
 			inquirer.prompt([
 				{
@@ -45,52 +46,24 @@ function addDapp() {
 					validate: function (value) {
 						var done = this.async();
 
-						if (value.length == 0) {
-							done("Secret is too short, minimum is 1 character");
-							return;
-						}
-
-						if (value.length > 100) {
-							done("Secret is too long, maximum is 100 characters");
+						if (!accountHelper.isValidSecret(value)) {
+							done("Secret is not validated by BIP39");
 							return;
 						}
 
 						done(true);
 					}
+				},
+				{
+					type: "password",
+					name: "secondSecret",
+					message: "Enter second secret of your testnet account if you have"
 				}
 			], function (result) {
 				account = accountHelper.account(result.secret);
+				secondSecret = result.secondSecret;
 				next();
 			})
-		},
-		function(next) {
-			inquirer.prompt([
-				{
-					type: "confirm",
-					name: "confirmed",
-					message: "Overwrite the existing genesis block?",
-					default: true
-				}
-			], function (result) {
-				newGenesisBlock = result.confirmed;
-				next();
-			});
-		},
-		function(next) {
-			if (newGenesisBlock) {
-				return next();
-			}
-			fs.readFile(path.join(".", "genesisBlock.json"), "utf8", function(err, content) {
-				if (err) {
-					return next(err);
-				}
-				try {
-					genesisBlock = JSON.parse(content);
-					next();
-				} catch (e) {
-					return next(e);
-				}
-			});
 		},
 		function(next) {
 			inquirer.prompt([
@@ -132,6 +105,28 @@ function addDapp() {
 				},
 				{
 					type: "input",
+					name: "tags",
+					message: "Enter DApp tags",
+					validate: function (value) {
+						var done = this.async();
+
+						if (value.length > 160) {
+							done("DApp tags is too long, maximum is 160 characters");
+							return;
+						}
+
+						return done(true);
+					}
+				},
+				{
+					type: "rawlist",
+					name: "category",
+					required: true,
+					message: "Choose DApp category",
+					choices: dappCategories
+				},
+				{
+					type: "input",
 					name: "link",
 					message: "Enter DApp link",
 					required: true,
@@ -141,9 +136,13 @@ function addDapp() {
 						if (!valid_url.isUri(value)) {
 							done("Invalid DApp link, must be a valid url");
 							return;
-						} else if (value.indexOf(".zip") != value.length - 4) {
+						}
+						if (value.indexOf(".zip") != value.length - 4) {
 							done("Invalid DApp link, does not link to zip file");
 							return;
+						}
+						if (value.length > 160) {
+							return done("DApp link is too long, maximum is 160 characters");
 						}
 
 						return done(true);
@@ -151,60 +150,40 @@ function addDapp() {
 				},
 				{
 					type: "input",
-					name: "git",
-					message: "Enter Github repository (SSH|HTTPS)",
-					required: true,
+					name: "icon",
+					message: "Enter DApp icon url",
 					validate: function (value) {
 						var done = this.async();
 
-						if (!(/^git\@github\.com\:.+\/.+\.git$/i.test(value))
-							&& !(/^https:\/\/github\.com\/.+\/.+\.git$/i.test(value))) {
-							done("Invalid Github repository");
-							return;
+						if (!valid_url.isUri(value)) {
+							return done("Invalid DApp icon, must be a valid url");
+						}
+						var extname = path.extname(value);
+						if (['.png', '.jpg', '.jpeg'].indexOf(extname) == -1) {
+							return done("Invalid DApp icon file type");
+						}
+						if (value.length > 160) {
+							return done("DApp icon url is too long, maximum is 160 characters");
 						}
 
 						return done(true);
 					}
 				}
 			], function (result) {
-				if (!result.name || !result.description || !result.link || !result.git) {
+				if (!result.name || !result.link || !result.category) {
 					return next(new Error('invalid dapp params'));
 				}
-				console.log("Generating unique genesis block...");
-				if (newGenesisBlock) {
-					var r = blockHelper.new(account,
-						{
-							name: result.name,
-							description: result.description,
-							link: result.link,
-							git: result.git,
-							type: 0,
-							category: 0
-						}
-					);
-
-					block = r.block;
-					dapp = r.dapp;
-					delegates = r.delegates;
-				} else {
-					try {
-						var r = blockHelper.from(genesisBlock, account,
-							{
-								name: result.name,
-								description: result.description,
-								link: result.link,
-								git: result.git,
-								type: 0,
-								category: 0
-							}
-						);
-					} catch (e) {
-						return next(e);
-					}
-
-					block = r.block;
-					dapp = r.dapp;
-				}
+				dappParams = {
+					name: result.name,
+					link: result.link,
+					category: dappCategories.indexOf(result.category) + 1,
+					description: result.description || "",
+					tags: result.tags || "",
+					icon: result.icon || "",
+					type: 0
+				};
+				dappTrs = AschJS.dapp.createDapp(account.secret, secondSecret, dappParams);
+				console.log("Generate dapp transaction", dappTrs);
 				next();
 			});
 		},
@@ -237,7 +216,6 @@ function addDapp() {
 								return;
 							}
 						}
-
 						done(true);
 					}
 				}
@@ -246,7 +224,7 @@ function addDapp() {
 					return next("invalid dapp forger public keys");
 				}
 				console.log("Creating DApp genesis block");
-				dappBlock = dappHelper.new(account, block, result.publicKeys.split(","));
+				dappBlock = dappHelper.new(account, result.publicKeys.split(","));
 				next();
 			});
 		},
@@ -261,91 +239,37 @@ function addDapp() {
 			});
 		},
 		function(next) {
-			dappPath = path.join(dappsPath, dapp.id);
+			dappPath = path.join(dappsPath, dappTrs.id);
 			fsExtra.copy(templatePath, dappPath, {clobber: true}, next);
 		},
 		function(next) {
-			gift.init(dappPath, function (err, repo) {
-				if (err) {
-					next(err);
-				}
-
-				repo.remote_add("origin", dapp.asset.dapp.git, function(err) {
-					if (err) {
-						console.log("remote origin already exists");
-					}
-					next();
-				});
-			});
-		},
-		function(next) {
-			var packageJson = path.join(dappPath, "package.json");
-			var config = null;
-
-			try {
-				config = JSON.parse(fs.readFileSync(packageJson));
-			} catch (e) {
-				return next("Invalid package.json file for " + dApp.transactionId + " DApp");
-			}
-
-			npm.load(config, next);
-		},
-		function(next) {
-			console.log("Installing node_modules");
-			npm.root = path.join(dappPath, "node_modules");
-			npm.prefix = dappPath;
-			npm.commands.install(next);
-		},
-		function(next) {
 			console.log("Saving genesis block");
-			var genesisBlockJson = JSON.stringify(block, null, 2);
-			fs.writeFile(path.join(".", "genesisBlock.json"), genesisBlockJson, "utf8", next);
+			var genesisBlockJson = JSON.stringify(dappBlock, null, 2);
+			fs.writeFile(path.join(dappPath, "genesis.json"), genesisBlockJson, "utf8", next);
 		},
 		function(next) {
-			console.log("Updating config");
-			fs.readFile(path.join(".", "config.json"), "utf8", function(err, content) {
+			console.log("Saving dapp meta information");
+			var dappParamsJson = JSON.stringify(dappParams, null, 2);
+			fs.writeFile(path.join(dappPath, "dapp.json"), dappParamsJson, "utf8", next);
+		},
+		function (next) {
+			console.log("Registering dapp in localnet");
+			var api = new Api({port: 4096});
+			api.broadcastTransaction(dappTrs, function (err) {
 				if (err) {
-					return next(err);
+					next("Failed to register dapp: " + err);
+				} else {
+					next();
 				}
-				var config;
-				try {
-					config = JSON.parse(content);
-				} catch (e) {
-					return next(e);
-				}
-				if (newGenesisBlock) {
-					config.forging = config.forging || {};
-					config.forging.secret = delegates.map(function (d) {
-						return d.secret;
-					});
-				}
-				inquirer.prompt([
-					{
-						type: "confirm",
-						name: "confirmed",
-						message: "Add dapp to autolaunch?"
-					}
-				], function (result) {
-					if (result.confirmed) {
-						config.dapp = config.dapp || {};
-						config.dapp.autoexec = config.dapp.autoexec || [];
-						config.dapp.autoexec.push({
-							params: [
-								account.secret,
-								"modules.full.json"
-							],
-							dappid: dapp.id
-						})
-					}
-					fs.writeFile(path.join(".", "config.json"), JSON.stringify(config, null, 2), next);
-				});
 			});
 		}
 	], function(err) {
-		if (!err) {
-			console.log("Done (DApp id is " + dapp.id + ")");	
-		} else {
+		if (err) {
 			console.log(err);
+		} else {
+			setTimeout(function () {
+				console.log("Done (DApp id is " + dappTrs.id + ")");
+			}, 10000);
 		}
 	});
 }

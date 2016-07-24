@@ -10,5 +10,7 @@ module.exports = {
 			address: address,
 			secret : secret
 		}
-	}
+	},
+	
+	isValidSecret: crypto.isValidSecret
 }
