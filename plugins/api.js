@@ -1,3 +1,4 @@
+var fs = require('fs');
 var Api = require('../helpers/api.js');
 var aschJS = require('asch-js');
 
@@ -247,6 +248,18 @@ function setSecondSecret(options) {
   });
 }
 
+function registerDapp(options) {
+  if (!options.metafile || !fs.existsSync(options.metafile)) {
+    console.error("Error: invalid params, dapp meta file must exists");
+    return;
+  }
+  var dapp = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
+  var trs = aschJS.dapp.createDapp(options.secret, options.secondSecret, dapp);
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.success);
+  });
+}
+
 module.exports = function(program) {
   globalOptions = program;
   
@@ -415,4 +428,12 @@ module.exports = function(program) {
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
     .action(setSecondSecret);
+    
+  program
+    .command("registerdapp")
+    .description("register a dapp")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-f, --metafile <metafile>", "dapp meta file")
+    .action(registerDapp);
 }
