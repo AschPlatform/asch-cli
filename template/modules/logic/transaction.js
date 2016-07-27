@@ -1,6 +1,6 @@
 var extend = require("extend");
-var bignum = require("browserify-bignum");
-var ByteBuffer = require("../helpers/bytebuffer");
+var bignum = require("bignumber");
+var ByteBuffer = require("bytebuffer");
 var timeHelper = require("../helpers/time.js");
 
 var private = {}, self = null,

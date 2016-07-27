@@ -1,5 +1,5 @@
 var extend = require("extend");
-var bignum = require("browserify-bignum");
+var bignum = require("bignumber");
 
 var private = {}, self = null,
 	library = null, modules = null;

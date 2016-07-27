@@ -1,5 +1,6 @@
-var private = {}, self = null,
-	library = null, modules = null;
+var self = null;
+var library = null;
+var modules = null;
 
 /**
  * Creates instance of Transport API. Use *modules.api.transport* to get existing object.

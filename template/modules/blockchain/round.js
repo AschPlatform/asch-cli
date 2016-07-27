@@ -1,5 +1,5 @@
 var async = require("async");
-var crypto = require("crypto-browserify");
+var crypto = require("crypto");
 var slots = require("../helpers/slots.js");
 
 var private = {}, self = null,

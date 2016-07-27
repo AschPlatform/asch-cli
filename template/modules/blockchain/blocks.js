@@ -1,4 +1,4 @@
-var crypto = require("crypto-browserify");
+var crypto = require("crypto");
 var path = require("path");
 var async = require("async");
 var extend = require("extend");
@@ -16,7 +16,7 @@ function Blocks(cb, _library) {
 	library = _library;
 
 	try {
-		private.genesisBlock = require("json!../../genesis.json");
+		private.genesisBlock = require("../../genesis.json");
 	} catch (e) {
 		library.logger("Failed to load genesis.json");
 	}

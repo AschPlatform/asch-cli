@@ -1,4 +1,4 @@
-var bignum = require("browserify-bignum");
+var bignum = require("bignumber");
 var async = require("async");
 var ip = require("ip")
 

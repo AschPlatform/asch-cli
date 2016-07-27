@@ -1,5 +1,6 @@
-var private = {}, self = null,
-library = null, modules = null;
+var self = null;
+var library = null;
+var modules = null;
 
 /**
  * Creates instance of Accounts API. Use *modules.api.accounts* to get existing object.

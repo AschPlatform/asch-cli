@@ -1,7 +1,7 @@
-var extend = require("extend");
 var util = require("util");
-var crypto = require("crypto-browserify");
-var bignum = require("browserify-bignum");
+var crypto = require("crypto");
+var bignum = require("bignumber");
+var extend = require("extend");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -105,19 +105,20 @@ Accounts.prototype.clone = function (cb) {
 }
 
 Accounts.prototype.getExecutor = function (cb) {
-	if (!process.argv[2]) {
+	var secret = process.argv[3];
+	if (!secret) {
 		return setImmediate(cb, "Secret is null");
 	}
 	if (private.executor) {
 		return setImmediate(cb, null, private.executor);
 	}
-	var keypair = modules.api.crypto.keypair(process.argv[2]);
+	var keypair = modules.api.crypto.keypair(secret);
 	modules.api.dapps.getGenesis(function (err, res) {
 		var address = self.generateAddressByPublicKey(keypair.publicKey.toString("hex"));
 		private.executor = {
 			address: address,
 			keypair: keypair,
-			secret: process.argv[2],
+			secret: secret,
 			isAuthor: res.authorId == address
 		}
 		cb(err, private.executor);

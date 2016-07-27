@@ -1,5 +1,5 @@
-var bignum = require("browserify-bignum");
-var ByteBuffer = require("../helpers/bytebuffer");
+var bignum = require("bignumber");
+var ByteBuffer = require("bytebuffer");
 
 var private = {}, self = null,
 	library = null, modules = null;

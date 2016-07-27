@@ -1,8 +1,9 @@
 /*
  Asch blocks API calls
  */
-var private = {}, self = null,
-library = null, modules = null;
+var self = null;
+var library = null;
+var modules = null;
 
 /**
  * Creates instance of Blocks API. Use *modules.api.blocks* to get existing object.

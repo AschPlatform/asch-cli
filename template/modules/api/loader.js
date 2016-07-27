@@ -1,5 +1,6 @@
-var private = {}, self = null,
-library = null, modules = null;
+var self = null;
+var library = null;
+var modules = null;
 
 /**
  * Creates instance of Loader API. Use *modules.api.loader* to get existing object.
