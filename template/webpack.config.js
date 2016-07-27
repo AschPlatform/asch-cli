@@ -11,10 +11,5 @@ module.exports = {
     loaders: [
       {test: /.json$/, loader: 'json'},
     ]
-  },
-  resolve: {
-    alias: {
-      "Long": __dirname + "/node_modules/bytebuffer/node_modules/long/index.js"
-    }
-  },
+  }
 }

@@ -17,12 +17,12 @@ private.loadBlockChain = function () {
 			return library.logger("Failed to get blocks count", err)
 		}
 
-		library.logger("Blocks " + count);
+		library.logger("loading blocks total " + count);
 		async.until(
 			function () {
 				return count < offset
 			}, function (cb) {
-				library.logger("Current " + offset);
+				library.logger("loading block " + offset);
 				modules.blockchain.blocks.loadBlocksOffset(limit, offset, function (err) {
 					if (err) {
 						return setImmediate(cb, err);

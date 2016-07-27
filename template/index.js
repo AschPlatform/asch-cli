@@ -1,6 +1,3 @@
-console.log("Dapp loading process pid " + process.pid)
-
-// require("longjohn");
 var async = require("async");
 var path = require("path");
 var ZSchema = require("z-schema");
@@ -252,8 +249,6 @@ async.auto({
 			ready = true;
 
 			scope.bus.message("bind", scope.modules);
-
-			scope.logger("Dapp loaded process pid " + process.pid)
 			cb();
 		}]
 	});

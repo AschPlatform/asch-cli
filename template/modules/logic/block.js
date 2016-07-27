@@ -1,5 +1,5 @@
-var ByteBuffer = require("bytebuffer");
 var bignum = require("browserify-bignum");
+var ByteBuffer = require("../helpers/bytebuffer");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -48,12 +48,16 @@ Block.prototype.getBytes = function (block, withSignature) {
 		bb.writeByte(pb[i]);
 	}
 
-	pb = bignum(block.pointId).toBuffer({size: "8"});
-	for (var i = 0; i < 8; i++) {
-		bb.writeByte(pb[i]);
+	if (block.pointId) {
+		pb = bignum(block.pointId).toBuffer({ size: "8" });
+		for (var i = 0; i < 8; i++) {
+			bb.writeByte(pb[i]);
+		}
 	}
 
-	bb.writeInt(block.pointHeight);
+	if (block.pointHeight) {
+		bb.writeInt(block.pointHeight);
+	}
 
 	bb.writeInt(block.count);
 
