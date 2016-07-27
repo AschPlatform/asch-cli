@@ -151,9 +151,8 @@ module.exports = function (options, cb) {
 
 		ready: ["modules", "bus", "logger", function (cb, scope) {
 			ready = true;
-
 			scope.bus.message("bind", scope.modules);
 			cb();
 		}]
-	});
+	}, cb);
 }

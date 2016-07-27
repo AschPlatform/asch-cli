@@ -93,4 +93,8 @@ Sandbox.prototype.run = function () {
 }
 
 var instance = new Sandbox();
+
+process.exit = function (code) {
+	instance.emit('exit', code);
+}
 module.exports = instance;
