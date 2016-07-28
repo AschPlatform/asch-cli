@@ -1,4 +1,5 @@
 var constants = require("../helpers/constants.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -88,7 +89,7 @@ WithdrawalTransfer.prototype.dbRead = function (row) {
 WithdrawalTransfer.prototype.onBind = function (_modules) {
 	modules = _modules;
 
-	modules.logic.transaction.attachAssetType(2, self);
+	modules.logic.transaction.attachAssetType(TransactionTypes.WITHDRAWAL, self);
 }
 
 WithdrawalTransfer.prototype.withdrawal = function (cb, query) {
@@ -117,7 +118,7 @@ WithdrawalTransfer.prototype.withdrawal = function (cb, query) {
 		}, function (err, account) {
 			try {
 				var transaction = library.modules.logic.transaction.create({
-					type: 2,
+					type: TransactionTypes.WITHDRAWAL,
 					amount: query.amount,
 					sender: account,
 					keypair: keypair

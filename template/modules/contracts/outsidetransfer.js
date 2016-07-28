@@ -1,3 +1,5 @@
+var TransactionTypes = require("../helpers/transaction-types.js");
+
 var private = {}, self = null,
 	library = null, modules = null;
 
@@ -140,7 +142,7 @@ OutsideTransfer.prototype.normalize = function (asset, cb) {
 OutsideTransfer.prototype.onBind = function (_modules) {
 	modules = _modules;
 
-	modules.logic.transaction.attachAssetType(1, self);
+	modules.logic.transaction.attachAssetType(TransactionTypes.OUT_TRANSFER, self);
 }
 
 module.exports = OutsideTransfer;

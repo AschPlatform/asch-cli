@@ -1,4 +1,5 @@
 var async = require("async");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -175,7 +176,7 @@ Transactions.prototype.addTransaction = function (cb, query) {
 
 				try {
 					var transaction = modules.logic.transaction.create({
-						type: 0,
+						type: TransactionTypes.IN_TRANSFER,
 						amount: query.amount,
 						sender: account,
 						recipientId: query.recipientId,

@@ -1,5 +1,6 @@
 var extend = require("extend");
 var bignum = require("bignumber");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -137,7 +138,7 @@ Delegates.prototype.addDelegates = function (cb, query) {
 
 			try {
 				var transaction = modules.logic.transaction.create({
-					type: 4,
+					type: TransactionTypes.DELEGATE,
 					sender: account,
 					keypair: keypair,
 					delegates: query.delegates

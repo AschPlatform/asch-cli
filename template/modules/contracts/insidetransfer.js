@@ -1,5 +1,6 @@
 var async = require("async");
 var constants = require("../helpers/constants.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -211,7 +212,7 @@ InsideTransfer.prototype.normalize = function (asset, cb) {
 InsideTransfer.prototype.onBind = function (_modules) {
 	modules = _modules;
 
-	modules.logic.transaction.attachAssetType(0, self);
+	modules.logic.transaction.attachAssetType(TransactionTypes.IN_TRANSFER, self);
 }
 
 module.exports = InsideTransfer;

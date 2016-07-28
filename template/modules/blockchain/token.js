@@ -1,5 +1,6 @@
 var extend = require("extend");
 var bignum = require("bignumber");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -25,7 +26,7 @@ Token.prototype.addToken = function (cb, query) {
 
 			try {
 				var transaction = modules.logic.transaction.create({
-					type: 5,
+					type: TransactionTypes.TOKEN,
 					sender: account,
 					keypair: keypair,
 					name: query.name,

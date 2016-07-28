@@ -1,5 +1,6 @@
 var async = require("async");
 var constants = require("../helpers/constants.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -210,7 +211,7 @@ Token.prototype.findToken = function (name) {
 Token.prototype.onBind = function (_modules) {
 	modules = _modules;
 
-	modules.logic.transaction.attachAssetType(5, self);
+	modules.logic.transaction.attachAssetType(TransactionTypes.TOKEN, self);
 }
 
 module.exports = Token;

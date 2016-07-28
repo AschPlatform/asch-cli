@@ -1,5 +1,6 @@
 var async = require("async");
 var constants = require("../helpers/constants.js");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -157,7 +158,7 @@ Delegates.prototype.dbRead = function (row) {
 Delegates.prototype.onBind = function (_modules) {
 	modules = _modules;
 
-	modules.logic.transaction.attachAssetType(4, self);
+	modules.logic.transaction.attachAssetType(TransactionTypes.DELEGATE, self);
 }
 
 module.exports = Delegates;
