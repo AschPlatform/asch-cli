@@ -123,7 +123,7 @@ module.exports = {
 			amount: 0,
 			fee: 0,
 			timestamp: 0,
-			recipientId: genesisAccount.address,
+			recipientId: null,
 			senderId: genesisAccount.address,
 			senderPublicKey: genesisAccount.keypair.publicKey,
 			asset: {
