@@ -75,7 +75,7 @@ function peerstat() {
 				errList.push({peers: errorMap[k], error: k});
 			}
 			normalList.sort(function (l, r) {
-				return l.height > r.height;
+				return r.height - l.height;
 			});
 			
 			function joinPeerAddrs(peers) {
