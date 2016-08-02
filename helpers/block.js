@@ -127,7 +127,9 @@ module.exports = {
 			senderId: genesisAccount.address,
 			senderPublicKey: genesisAccount.keypair.publicKey,
 			asset: {
-				votes: votes
+				vote: {
+					votes: votes
+				}
 			}
 		}
 
