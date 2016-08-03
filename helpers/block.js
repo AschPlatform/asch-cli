@@ -164,7 +164,6 @@ module.exports = {
 		}
 
 		transactions = transactions.sort(function compare(a, b) {
-			if (a.type == 1) return 1;
 			if (a.type < b.type) return -1;
 			if (a.type > b.type) return 1;
 			if (a.amount < b.amount) return -1;
