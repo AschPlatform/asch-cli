@@ -128,6 +128,12 @@ function delegatestat() {
 				return;
 			}
 			delegates = delegates.sort(function (l, r) {
+				if (!l.block) {
+					return -1;
+				}
+				if (!r.block) {
+					return 1;
+				}
 				return l.block.timestamp - r.block.timestamp;
 			});
 			console.log("name\taddress\trate\tapproval\tproductivity\tproduced\theight\tid\ttime");
@@ -141,10 +147,10 @@ function delegatestat() {
 						d.approval,
 						d.productivity,
 						d.producedblocks,
-						b.height,
-						b.id,
-						AschUtils.format.fullTimestamp(b.timestamp),
-						AschUtils.format.timeAgo(b.timestamp));
+						b ? b.height : '',
+						b ? b.id : '',
+						AschUtils.format.fullTimestamp(b ? b.timestamp : ''),
+						AschUtils.format.timeAgo(b ? b.timestamp : ''));
 			}
 		});
 	});
