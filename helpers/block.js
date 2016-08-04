@@ -164,11 +164,19 @@ module.exports = {
 		}
 
 		transactions = transactions.sort(function compare(a, b) {
-			if (a.type < b.type) return -1;
-			if (a.type > b.type) return 1;
-			if (a.amount < b.amount) return -1;
-			if (a.amount > b.amount) return 1;
-			return 0;
+			if (a.type != b.type) {
+        if (a.type == 1) {
+          return 1;
+        }
+        if (b.type == 1) {
+          return -1;
+        }
+        return a.type - b.type;
+      }
+      if (a.amount != b.amount) {
+        return a.amount - b.amount;
+      }
+      return a.id.localeCompare(b.id);
 		});
 
 		transactions.forEach(function (tx) {
