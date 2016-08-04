@@ -41,7 +41,7 @@ function peerstat() {
 			console.log('Failed to get peers', err);
 			return;
 		}
-		async.mapLimit(result.peers, 10, function (peer, next) {
+		async.map(result.peers, function (peer, next) {
 			new Api({host: peer.ip, port: peer.port}).get('/api/blocks/getHeight', function (err, result) {
 				if (err) {
 					next(null, {peer: peer, error: err});
@@ -108,7 +108,7 @@ function delegatestat() {
 			console.log('Failed to get delegates', err);
 			return;
 		}
-		async.mapLimit(result.delegates, 10, function (delegate, next) {
+		async.map(result.delegates, function (delegate, next) {
 			var params = {
 				generatorPublicKey: delegate.publicKey,
 				limit: 1,
