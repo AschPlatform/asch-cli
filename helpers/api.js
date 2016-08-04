@@ -65,7 +65,7 @@ Api.prototype.broadcastTransaction = function (trs, cb) {
     url: this.baseUrl + "/peer/transactions",
     // TODO magic should be read from a config file or options
     headers: {
-      magic: "15a3b1d6",
+      magic: "594fe0f3",
       version: ""
     },
     json: {
