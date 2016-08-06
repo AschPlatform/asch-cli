@@ -44,8 +44,10 @@ function peerstat() {
 		async.map(result.peers, function (peer, next) {
 			new Api({host: peer.ip, port: peer.port}).get('/api/blocks/getHeight', function (err, result) {
 				if (err) {
+					console.log('%s:%d %s %d', peer.ip, peer.port, peer.version, err);
 					next(null, {peer: peer, error: err});
 				} else {
+					console.log('%s:%d %s %d', peer.ip, peer.port, peer.version, result.height);
 					next(null, {peer: peer, height: result.height});
 				}
 			});
@@ -85,6 +87,7 @@ function peerstat() {
 				});
 				return peerAddrs.join(',');
 			}
+			console.log('======================================');
 			for (var i = 0; i < normalList.length; ++i) {
 				var item = normalList[i];
 				if (i == 0) {
