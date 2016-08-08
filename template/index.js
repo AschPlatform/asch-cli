@@ -77,10 +77,11 @@ Sandbox.prototype.sendMessage = function (msg, cb) {
 	this.emit('message', messageObj);
 }
 
-Sandbox.prototype.run = function () {
+Sandbox.prototype.run = function (argv) {
 	var options = {
 		sandbox: this
 	}
+	process.argv = argv;
 	require('./init')(options, function (err) {
 		if (err) {
 			console.error('Failed to init: ' + err);

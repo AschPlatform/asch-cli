@@ -32,7 +32,7 @@ Transaction.prototype.create = function (data) {
 		type: data.type,
 		amount: 0,
 		senderId: data.sender.address,
-		senderPublicKey: data.sender.publicKey,
+		senderPublicKey: data.sender.publicKey.toString('hex'),
 		timestamp: timeHelper.getNow(),
 		token: "XAS",
 		asset: {}
