@@ -433,7 +433,7 @@ function depositDapp() {
 				type: "input",
 				name: "host",
 				message: "Host and port",
-				default: "localhost:7000",
+				default: "localhost:4096",
 				required: true
 			}
 		], function (result) {
@@ -492,11 +492,11 @@ function withdrawalDapp() {
 
 			var body = {
 				secret: result.secret,
-				amount: result.amount
+				amount: Number(result.amount)
 			};
 
 			request({
-				url: "http://localhost:7000/api/dapps/" + result.dappId + "/api/withdrawal",
+				url: "http://localhost:4096/api/dapps/" + result.dappId + "/api/withdrawal",
 				method: "post",
 				json: true,
 				body: body
@@ -506,7 +506,7 @@ function withdrawalDapp() {
 				}
 
 				if (body.success) {
-					console.log(body.response.transactionId);
+					console.log(body.transactionId);
 				} else {
 					return console.log(body.error);
 				}
