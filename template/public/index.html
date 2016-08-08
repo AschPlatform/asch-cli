@@ -1,8 +1,24 @@
-<html>
+<!DOCTYPE html>
+<html lang="en" ng-app="tokenApp">
 <head>
-    <title>Hello, world!</title>
+    <meta charset="UTF-8">
+    <title>Asch Tokens</title>
+    <link rel="stylesheet" href="vendor/angular-material-1.0.9.css">
+
+    <link rel="stylesheet" href="css/app.css">
+    <script src="vendor/angular-1.5.8.js"></script>
+    <script src="vendor/angular-ui-router-0.2.18.js"></script>
+    <script src="vendor/angular-aria-1.5.8.js"></script>
+    <script src="vendor/angular-animate-1.5.8.js"></script>
+    <script src="vendor/angular-material-1.0.9.js"></script>
+    <script src="vendor/ng-table-0.8.3.js"></script>
+    <script src="vendor/angular-messages-1.4.12.js"></script>
+    <script src="js/app.js"></script>
+    <base href="/dapps/{{appID}}/">
 </head>
 <body>
-<h1>Hello, world!</h1>
+<div ui-view class="tokenDApp_wrapper">
+
+</div>
 </body>
 </html>
