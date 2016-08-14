@@ -1,5 +1,6 @@
 var fs = require("fs");
 var async = require("async");
+var request = require("request");
 var accountHelper = require("../helpers/account.js");
 var blockHelper = require("../helpers/block.js");
 var cryptoLib = require("../lib/crypto.js");
@@ -159,6 +160,34 @@ function delegatestat() {
 	});
 }
 
+function ipstat() {
+	var api = new Api({ host: globalOptions.host, port: globalOptions.port });
+	api.get('/api/peers/', {}, function (err, result) {
+    if (err) {
+			console.log('Failed to get peers', err);
+			return;
+		}
+		async.mapLimit(result.peers, 5, function (peer, next) {
+			var url = 'http://ip.taobao.com/service/getIpInfo.php?ip=' + peer.ip;
+			request(url, function (err, resp, body) {
+				if (err || resp.statusCode != 200) {
+					console.error('Failed to get ip info:', err);
+					next(null, {});
+				} else {
+					next(null, JSON.parse(body).data);
+				}
+			});
+		}, function (err, ips) {
+			for (var i = 0; i < ips.length; ++i) {
+				var ip = ips[i];
+				if (ip.country_id) {
+					console.log('%s\t%s', ip.country, ip.country_id);
+				}
+			}
+		});
+	});
+}
+
 module.exports = function(program) {
 	globalOptions = program;
 
@@ -176,4 +205,9 @@ module.exports = function(program) {
 	  .command("delegatestat")
 		.description("analyze delegates status")
 		.action(delegatestat);
+	
+  program
+	  .command("ipstat")
+		.description("analyze peer ip info")
+		.action(ipstat);
 }
