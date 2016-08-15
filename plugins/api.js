@@ -5,7 +5,7 @@ var aschJS = require('asch-js');
 var globalOptions;
 
 function getApi() {
-  return new Api({host: globalOptions.host, port: globalOptions.port});
+  return new Api({host: globalOptions.host, port: globalOptions.port, mainnet: !!globalOptions.main});
 }
 
 function pretty(obj) {

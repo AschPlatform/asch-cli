@@ -23,9 +23,11 @@ function resultHandler(cb) {
 
 function Api(options) {
   this.options = options || {};
+  this.mainnet = this.options.mainnet;
   this.host = this.options.host || "127.0.0.1";
-  this.port = this.options.port || 4096;
+  this.port = this.options.port || (this.mainnet ? 8192 : 4096);
   this.baseUrl = "http://" + this.host + ":" + this.port;
+  this.magic = this.mainnet ? '5f5b3cf5' : '594fe0f3';
 }
 
 Api.prototype.get = function (path, params, cb) {
@@ -65,7 +67,7 @@ Api.prototype.broadcastTransaction = function (trs, cb) {
     url: this.baseUrl + "/peer/transactions",
     // TODO magic should be read from a config file or options
     headers: {
-      magic: "594fe0f3",
+      magic: this.magic,
       version: ""
     },
     json: {

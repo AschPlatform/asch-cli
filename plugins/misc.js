@@ -10,6 +10,10 @@ var AschUtils = require('asch-js').utils;
 
 var globalOptions;
 
+function getApi() {
+  return new Api({host: globalOptions.host, port: globalOptions.port, mainnet: !!globalOptions.main});
+}
+
 function writeFileSync(file, obj) {
 	var content = (typeof obj === "string" ? obj : JSON.stringify(obj, null, 2));
 	fs.writeFileSync(file, content, "utf8");
@@ -36,14 +40,14 @@ function genGenesisBlock(options) {
 }
 
 function peerstat() {
-	var api = new Api({host: globalOptions.host, port: globalOptions.port});
+	var api = getApi();
 	api.get('/api/peers/', {}, function (err, result) {
     if (err) {
 			console.log('Failed to get peers', err);
 			return;
 		}
 		async.map(result.peers, function (peer, next) {
-			new Api({host: peer.ip, port: peer.port}).get('/api/blocks/getHeight', function (err, result) {
+			getApi().get('/api/blocks/getHeight', function (err, result) {
 				if (err) {
 					console.log('%s:%d %s %d', peer.ip, peer.port, peer.version, err);
 					next(null, {peer: peer, error: err});
@@ -106,7 +110,7 @@ function peerstat() {
 }
 
 function delegatestat() {
-	var api = new Api({host: globalOptions.host, port: globalOptions.port});
+	var api = getApi();
 	api.get('/api/delegates', {}, function (err, result) {
     if (err) {
 			console.log('Failed to get delegates', err);
@@ -161,7 +165,7 @@ function delegatestat() {
 }
 
 function ipstat() {
-	var api = new Api({ host: globalOptions.host, port: globalOptions.port });
+	var api = getApi();
 	api.get('/api/peers/', {}, function (err, result) {
     if (err) {
 			console.log('Failed to get peers', err);
