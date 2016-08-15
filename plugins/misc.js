@@ -20,9 +20,9 @@ function appendFileSync(file, obj) {
 	fs.appendFileSync(file, content, "utf8");
 }
 
-function genGenesisBlock() {
+function genGenesisBlock(options) {
 	var genesisAccount = accountHelper.account(cryptoLib.generateSecret());
-	var newBlockInfo = blockHelper.new(genesisAccount);
+	var newBlockInfo = blockHelper.new(genesisAccount, null, options.file);
 	var delegateSecrets = newBlockInfo.delegates.map(function(i) {
 		return i.secret;
 	});
@@ -194,6 +194,7 @@ module.exports = function(program) {
   program
 	  .command("creategenesis")
 		.description("create genesis block")
+		.option("-f, --file <file>", "genesis accounts balance file")
 		.action(genGenesisBlock);
 		
   program

@@ -1,4 +1,5 @@
 var crypto = require('crypto');
+var fs = require('fs');
 var cryptoLib = require('../lib/crypto.js');
 var transactionsLib = require('../lib/transactions.js');
 var accounts = require('./account.js');
@@ -56,7 +57,7 @@ function getBytes(block) {
 }
 
 module.exports = {
-	new: function (genesisAccount, dapp) {
+	new: function (genesisAccount, dapp, accountsFile) {
 		var payloadLength = 0,
 			payloadHash = crypto.createHash('sha256'),
 			transactions = [],
@@ -64,24 +65,52 @@ module.exports = {
 			delegates = [];
 
 		// fund recipient account
-		var balanceTransaction = {
-			type: 0,
-			amount: 10000000000000000,
-			fee: 0,
-			timestamp: 0,
-			recipientId: genesisAccount.address,
-			senderId: sender.address,
-			senderPublicKey: sender.keypair.publicKey
-		};
+		if (accountsFile && fs.existsSync(accountsFile)) {
+			var lines = fs.readFileSync(accountsFile, 'utf8').split('\n');
+			for (var i in lines) {
+				var parts = lines[i].split('\t');
+				if (parts.length != 2) {
+					console.error('Invalid recipient balance format');
+					process.exit(1);
+				}
+				var trs = {
+					type: 0,
+					amount: Number(parts[1]) * 100000000,
+					fee: 0,
+					timestamp: 0,
+					recipientId: parts[0],
+					senderId: sender.address,
+					senderPublicKey: sender.keypair.publicKey 
+				};
+				totalAmount += trs.amount;
 
-		totalAmount += balanceTransaction.amount;
+				var bytes = transactionsLib.getTransactionBytes(trs);
+				trs.signature = cryptoLib.sign(sender.keypair, bytes);
+				bytes = transactionsLib.getTransactionBytes(trs);
+				trs.id = cryptoLib.getId(bytes);
 
-		var bytes = transactionsLib.getTransactionBytes(balanceTransaction);
-		balanceTransaction.signature = cryptoLib.sign(sender.keypair, bytes);
-		bytes = transactionsLib.getTransactionBytes(balanceTransaction);
-		balanceTransaction.id = cryptoLib.getId(bytes);
+				transactions.push(trs);
+			}
+		} else {
+			var balanceTransaction = {
+				type: 0,
+				amount: 10000000000000000,
+				fee: 0,
+				timestamp: 0,
+				recipientId: genesisAccount.address,
+				senderId: sender.address,
+				senderPublicKey: sender.keypair.publicKey
+			};
 
-		transactions.push(balanceTransaction);
+			totalAmount += balanceTransaction.amount;
+
+			var bytes = transactionsLib.getTransactionBytes(balanceTransaction);
+			balanceTransaction.signature = cryptoLib.sign(sender.keypair, bytes);
+			bytes = transactionsLib.getTransactionBytes(balanceTransaction);
+			balanceTransaction.id = cryptoLib.getId(bytes);
+
+			transactions.push(balanceTransaction);
+		}
 
 		// make delegates
 		for (var i = 0; i < 101; i++) {
