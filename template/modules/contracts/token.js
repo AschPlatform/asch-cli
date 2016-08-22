@@ -74,7 +74,7 @@ Token.prototype.apply = function (trs, sender, cb, scope) {
 	private.tokens[trs.asset.token.name] = trs.id;
 
 	if (sender.balance["XAS"] < trs.fee) {
-		return setImmediate(cb, "Account does not have enouh XAS: " + trs.id);
+		return setImmediate(cb, "Account does not have enough XAS: " + trs.id);
 	}
 
 	async.series([
