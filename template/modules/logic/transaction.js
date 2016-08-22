@@ -1,7 +1,7 @@
 var extend = require("extend");
 var bignum = require("bignumber");
 var ByteBuffer = require("bytebuffer");
-var timeHelper = require("../helpers/time.js");
+var slots = require("../helpers/slots.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -33,7 +33,7 @@ Transaction.prototype.create = function (data) {
 		amount: 0,
 		senderId: data.sender.address,
 		senderPublicKey: data.sender.publicKey.toString('hex'),
-		timestamp: timeHelper.getNow(),
+		timestamp: slots.getNow(),
 		token: "XAS",
 		asset: {}
 	};
@@ -213,7 +213,7 @@ Transaction.prototype.verify = function (trs, sender, cb, scope) { //inheritance
 		return setImmediate(cb, "Invalid transaction amount: " + trs.id);
 	}
 
-	if (trs.timestamp > timeHelper.getNow()) {
+	if (trs.timestamp > slots.getNow()) {
 		return setImmediate(cb, "Invalid timestamp");
 	}
 

@@ -2,7 +2,7 @@ var crypto = require("crypto");
 var path = require("path");
 var async = require("async");
 var extend = require("extend");
-var timeHelper = require("../helpers/time.js");
+var slots = require("../helpers/slots.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -103,7 +103,7 @@ private.verify = function (block, cb, scope) {
 		}
 	}
 
-	if (block.timestamp <= (scope || private).lastBlock.timestamp || block.timestamp > timeHelper.getNow()) {
+	if (block.timestamp <= (scope || private).lastBlock.timestamp || block.timestamp > slots.getNow()) {
 		return cb("Invalid timestamp");
 	}
 

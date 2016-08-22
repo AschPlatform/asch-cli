@@ -38,6 +38,10 @@ module.exports = {
 		return t + epochTime * 1000;
 	},
 
+	getNow: function () {
+		return getEpochTime(new Date().getTime())
+	},
+
 	getSlotNumber: function (epochTime) {
 		if (epochTime === undefined) {
 			epochTime = this.getTime()
