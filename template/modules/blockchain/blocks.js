@@ -159,7 +159,7 @@ private.getIdSequence = function (height, cb) {
 				table: "blocks",
 				fields: [{id: "id"}, {expression: "max(height)", alias: "height"}],
 				group: {
-					expression: "(cast(height / 101 as integer) + (case when height % 101 > 0 then 1 else 0 end)), id",
+					expression: "(cast(height / 101 as integer) + (case when height % 101 > 0 then 1 else 0 end))",
 					having: {
 						height: {$lte: height}
 					}
