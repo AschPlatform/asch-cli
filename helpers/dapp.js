@@ -3,6 +3,7 @@ var ByteBuffer = require('bytebuffer');
 var bignum = require('browserify-bignum');
 var crypto = require('crypto');
 var dappTransactionsLib = require('../lib/dapptransactions.js');
+var accounts = require('./account.js');
 
 function getBytes(block, skipSignature) {
 	var size = 8 + 4 + 4 + 4 + 32 + 32 + 8 + 4 + 4 + 64;
@@ -61,7 +62,20 @@ function getBytes(block, skipSignature) {
 }
 
 module.exports = {
-	new: function (genesisAccount, publicKeys) {
+	new: function (genesisAccount, publicKeys, assetInfo) {
+		var sender = accounts.account(cryptoLib.generateSecret());
+
+		var block = {
+			delegate: genesisAccount.keypair.publicKey,
+			height: 1,
+			pointId: null,
+			pointHeight: null,
+			transactions: [],
+			timestamp: 0,
+			payloadLength: 0,
+			payloadHash: crypto.createHash('sha256')
+		}
+	
 		var delegates = publicKeys.map(function (key) {
 			return "+" + key;
 		})
@@ -79,26 +93,39 @@ module.exports = {
 				}
 			}
 		}
-		var block = {
-			delegate: genesisAccount.keypair.publicKey,
-			height: 1,
-			pointId: null,
-			pointHeight: null,
-			transactions: [],
-			timestamp: 0
-		}
-		block.transactions.push(delegatesTransaction);
-		block.count = block.transactions.length;
-
-		bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
+		var bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
 		delegatesTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
 		bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
 		delegatesTransaction.id = cryptoLib.getId(bytes);
 
-		block.payloadLength = bytes.length;
-		block.payloadHash = crypto.createHash('sha256').update(bytes).digest().toString('hex');
+		block.payloadLength += bytes.length;
+		block.payloadHash.update(bytes);
+		block.transactions.push(delegatesTransaction);
 
-		var bytes = getBytes(block);
+		if (assetInfo) {
+			var assetTrs = {
+				type: 0,
+				amount: assetInfo.amount * 100000000,
+				token: assetInfo.name,
+				fee: 0,
+				timestamp: 0,
+				recipientId: genesisAccount.address,
+				senderId: sender.address,
+				senderPublicKey: sender.keypair.publicKey
+			}
+			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
+			assetTrs.signature = cryptoLib.sign(sender.keypair, bytes);
+			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
+			assetTrs.id = cryptoLib.getId(bytes);
+	
+			block.payloadLength += bytes.length;
+			block.payloadHash.update(bytes);
+			block.transactions.push(assetTrs);
+		}
+		block.count = block.transactions.length;
+
+		block.payloadHash = block.payloadHash.digest().toString('hex');
+		bytes = getBytes(block);
 		block.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
 		bytes = getBytes(block);
 		block.id = cryptoLib.getId(bytes);

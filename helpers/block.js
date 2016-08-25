@@ -184,12 +184,12 @@ module.exports = {
 				}
 			};
 
-		bytes = transactionsLib.getTransactionBytes(dappTransaction);
-		dappTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
-		bytes = transactionsLib.getTransactionBytes(dappTransaction);
-		dappTransaction.id = cryptoLib.getId(bytes);
+			bytes = transactionsLib.getTransactionBytes(dappTransaction);
+			dappTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
+			bytes = transactionsLib.getTransactionBytes(dappTransaction);
+			dappTransaction.id = cryptoLib.getId(bytes);
 
-		transactions.push(dappTransaction);
+			transactions.push(dappTransaction);
 		}
 
 		transactions = transactions.sort(function compare(a, b) {

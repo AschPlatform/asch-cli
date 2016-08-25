@@ -36,6 +36,7 @@ function addDapp() {
 	var dappBlock;
 	var dappsPath = path.join(".", "dapps");
 	var dappPath;
+	var assetInfo;
 	async.series([
 		function(next) {
 			inquirer.prompt([
@@ -190,6 +191,47 @@ function addDapp() {
 		function(next) {
 			inquirer.prompt([
 				{
+					type: "confirm",
+					name: "inbuiltAsset",
+					message: "Do you want publish a inbuilt asset in this dapp?",
+					default: false
+				}
+			], function (result) {
+				if (!result.inbuiltAsset) {
+					return next();
+				}
+				inquirer.prompt([
+					{
+						type: "input",
+						name: "assetName",
+						message: "Enter asset name, for example: BTC, CNY, USD, MYASSET",
+						default: ''
+					},
+					{
+						type: "input",
+						name: "assetAmount",
+						message: "Enter asset total amount",
+						default: 1000000
+					}
+				], function (result) {
+					if (!result.assetName || result.assetName === 'XAS') {
+						return next('invalid inbuilt asset name');
+					}
+					var assetAmount = Number(result.assetAmount);
+					if (!assetAmount || isNaN(assetAmount) || assetAmount < 0) {
+						return next('invalid inbuilt asset amount');
+					}
+					assetInfo = {
+						name: result.assetName,
+						amount: assetAmount
+					};
+					next();
+				});
+			});
+		},
+		function(next) {
+			inquirer.prompt([
+				{
 					type: "input",
 					name: "publicKeys",
 					message: "Enter public keys of dapp forgers - hex array, use ',' for separator",
@@ -224,7 +266,7 @@ function addDapp() {
 					return next("invalid dapp forger public keys");
 				}
 				console.log("Creating DApp genesis block");
-				dappBlock = dappHelper.new(account, result.publicKeys.split(","));
+				dappBlock = dappHelper.new(account, result.publicKeys.split(","), assetInfo);
 				next();
 			});
 		},
