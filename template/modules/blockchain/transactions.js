@@ -159,6 +159,13 @@ Transactions.prototype.removeUnconfirmedTransaction = function (id, cb, scope) {
 }
 
 Transactions.prototype.addTransaction = function (cb, query) {
+	query.amount = Number(query.amount);
+	if (!query.secret || !query.amount || !query.recipientId) {
+		return cb('Invalid params');
+	}
+	if (!query.token) {
+		query.token = 'XAS';
+	}
 	var keypair = modules.api.crypto.keypair(query.secret);
 
 	library.sequence.add(function (cb) {

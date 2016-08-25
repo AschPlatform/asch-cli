@@ -16,20 +16,27 @@
         };
         var UserInfo = {
             secret: '',
-            balance: 0
         };
 
         function refreshAccount(account) {
-            UserInfo.balance = Number(account.balance['XAS']) / 100000000;
-            $('#balance').html(UserInfo.balance);
+            var $table = $('#balanceTable');
+            $table.find('tr:not(:first)').remove();
+            var $options = $('#assetOptions');
+            $options.html('');
+            for (var k in account.balance) {
+                var balance = Number(account.balance[k]) / 100000000;
+                var tr = '<tr><td>' + k + '</td>' + '<td>' + balance + '</td></tr>';
+                $table.append(tr);
+                $options.append('<option value="' + k + '">' + k + '</option>');
+            }
         }
 
         function onLogin(account) {
             State.isLogin = true;
-            $('#loginBtn').val('Logout');
+            $('#loginBtn').val('退出');
             $('#secretInput').hide();
 
-            $('#accountPanel').show();
+            $('#mainPanel').show();
             refreshAccount(account);
         }
 
@@ -54,9 +61,9 @@
         }
 
         function logout() {
-            $('#loginBtn').val('Login');
+            $('#loginBtn').val('登录');
             $('#secretInput').show();
-            $('#accountPanel').hide();
+            $('#mainPanel').hide();
             State.isLogin = false;
         }
 
@@ -81,6 +88,30 @@
             });
         }
 
+        function transfer(secret, asset, amount, address) {
+            $.ajax({
+                type: 'PUT',
+                url: BASE_URL + '/transaction',
+                data: {
+                    secret: secret,
+                    amount: amount,
+                    token: asset,
+                    recipientId: address
+                },
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert(ret.error);
+                        return;
+                    }
+                    $('#transferAmount').val('');
+                    $('#transferAddress').val('');
+                    setTimeout(login.bind(null, secret), 1000 * 10);
+                }
+            });
+        }
+
         $('#loginBtn').click(function () {
             if (State.isLogin) {
                 logout();
@@ -97,18 +128,52 @@
             var realAmount = parseFloat((amount * 100000000).toFixed(0));
             withdrawal(UserInfo.secret, realAmount);
         });
+
+        $('#transferBtn').click(function () {
+            var assetName = $('#assetOptions').val();
+            var amount = Number($('#transferAmount').val());
+            var address = $('#transferAddress').val();
+            if (!assetName || isNaN(amount) || amount <= 0 || !address) {
+                return alert('您输入的参数不正确!');
+            }
+            var realAmount = parseFloat((amount * 100000000).toFixed(0));
+            transfer(UserInfo.secret, assetName, realAmount, address);
+        });
     });
 </script>
 
 <body>
     <div>
         <input type="password" id="secretInput">
-        <input type="button" value="Login" id="loginBtn">
+        <input type="button" value="登录" id="loginBtn">
     </div>
-    <div id="accountPanel" style="display: none;">
-        <p><strong>Balance(XAS)</strong> <span id="balance">0</span></p>
-        <input type="text" id="withdrawalAmountinput">
-        <input type="button" value="Withdrawal" id="withdrawalBtn">
+    <div id="mainPanel" style="display: none;">
+        <hr/>
+        <h2>账户资产</h2>
+        <div>
+            <table id="balanceTable" width="200px" border="1">
+                <tr>
+                    <th>资产</th>
+                    <th>余额</th>
+                </tr>
+            </table>
+        </div>
+
+        <hr/>
+        <h2>XAS提现</h2>
+        <div>
+            <input type="text" id="withdrawalAmountinput" placeholder="请输入提现金额, 仅限XAS">
+            <input type="button" value="提现" id="withdrawalBtn">
+        </div>
+
+        <hr/>
+        <h2>链内转账</h2>
+        <div>
+            <select id="assetOptions"></select>
+            <input type="text" id="transferAmount" placeholder="请输入转账金额">
+            <input type="text" id="transferAddress" placeholder="请输入转账地址">
+            <input type="button" id="transferBtn" value="转账">
+        </div>
     </div>
 </body>
 
