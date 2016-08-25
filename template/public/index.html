@@ -9,8 +9,8 @@
 
 <script type="text/javascript">
     $(document).ready(function() {
-        var dappId = window.location.pathname.split('/')[2];
-        var BASE_URL = '/api/dapps/' + dappId + '/api';
+        var DAPP_ID = window.location.pathname.split('/')[2];
+        var BASE_URL = '/api/dapps/' + DAPP_ID + '/api';
         var State = {
             isLogin: false
         };
