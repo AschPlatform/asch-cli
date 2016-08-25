@@ -177,7 +177,7 @@ private.getIdSequence = function (height, cb) {
 			limit: 1000
 		},
 		alias: "s",
-		fields: [{height: "height"}, {expression: "ARRAY_AGG(s.\"id\")", alias: "ids"}]
+		fields: [{height: "height"}, {expression: "group_concat(s.id)", alias: "ids"}]
 	}, {height: Number, ids: Array}, function (err, rows) {
 		if (err || !rows.length) {
 			return cb(err || "Failed to get block id sequence")

@@ -234,7 +234,7 @@ private.withdrawalSync = function (cb) {
 								"b.height": {$gt: res[0].height}
 							},
 							sort: {
-								"b.\"height\"": 1
+								"b.height": 1
 							}
 						}, {amount: Number, id: String, senderPublicKey: String}, function (err, transactions) {
 							if (err) {
