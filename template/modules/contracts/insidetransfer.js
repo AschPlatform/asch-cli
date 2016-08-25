@@ -37,12 +37,12 @@ InsideTransfer.prototype.verify = function (trs, sender, cb, scope) {
 		return cb("Invalid transaction amount");
 	}
 
-	if (trs.token != "XAS") {
-		var tokenId = modules.contracts.token.findToken(trs.token);
-		if (!tokenId) {
-			return cb("Token does not exist");
-		}
-	}
+	// if (trs.token != "XAS") {
+	// 	var tokenId = modules.contracts.token.findToken(trs.token);
+	// 	if (!tokenId) {
+	// 		return cb("Token does not exist");
+	// 	}
+	// }
 
 	cb(null, trs);
 }
