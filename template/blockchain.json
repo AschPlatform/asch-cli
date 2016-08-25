@@ -84,26 +84,10 @@
 			},
 			{
 				"type": "left outer",
-				"table": "asset_myasset",
-				"alias": "t_ma",
-				"on": {
-					"t.id": "t_ma.\"transactionId\""
-				}
-			},
-			{
-				"type": "left outer",
 				"table": "asset_delegates",
 				"alias": "t_d",
 				"on": {
 					"t.id": "t_d.\"transactionId\""
-				}
-			},
-			{
-				"type": "left outer",
-				"table": "asset_token",
-				"alias": "t_t",
-				"on": {
-					"t.id": "t_t.\"transactionId\""
 				}
 			}
 		]
@@ -214,33 +198,6 @@
 		]
 	},
 	{
-		"table": "asset_myasset",
-		"alias": "t_ma",
-		"type": "table",
-		"tableFields": [
-			{
-				"name": "text",
-				"type": "String",
-				"length": 255,
-				"not_null": true
-			},
-			{
-				"name": "transactionId",
-				"type": "String",
-				"length": 21,
-				"not_null": true
-			}
-		],
-		"foreignKeys": [
-			{
-				"field": "transactionId",
-				"table": "transactions",
-				"table_field": "id",
-				"on_delete": "cascade"
-			}
-		]
-	},
-	{
 		"table": "asset_delegates",
 		"alias": "t_d",
 		"type": "table",
@@ -248,43 +205,6 @@
 			{
 				"name": "delegates",
 				"type": "Text",
-				"not_null": true
-			},
-			{
-				"name": "transactionId",
-				"type": "String",
-				"length": 21,
-				"not_null": true
-			}
-		],
-		"foreignKeys": [
-			{
-				"field": "transactionId",
-				"table": "transactions",
-				"table_field": "id",
-				"on_delete": "cascade"
-			}
-		]
-	},
-	{
-		"table": "asset_token",
-		"alias": "t_t",
-		"type": "table",
-		"tableFields": [
-			{
-				"name": "name",
-				"type": "String",
-				"length": 16,
-				"not_null": true
-			},
-			{
-				"name": "description",
-				"type": "Text",
-				"not_null": true
-			},
-			{
-				"name": "fund",
-				"type": "BigInt",
 				"not_null": true
 			},
 			{
