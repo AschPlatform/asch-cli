@@ -66,7 +66,7 @@ module.exports = {
 			return "+" + key;
 		})
 		var delegatesTransaction = {
-			type: 4,
+			type: 2,
 			amount: 0,
 			fee: 0,
 			timestamp: 0,

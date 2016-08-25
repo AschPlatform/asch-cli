@@ -15,6 +15,11 @@
 		"handler": "blockchain.accounts.open"
 	},
 	{
+		"path": "/openAccount2",
+		"method": "post",
+		"handler": "blockchain.accounts.open2"
+	},
+	{
 		"path": "/transaction",
 		"method": "put",
 		"handler": "blockchain.transactions.addTransaction"

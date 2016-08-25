@@ -5,7 +5,7 @@
   "pointHeight": null,
   "transactions": [
     {
-      "type": 4,
+      "type": 2,
       "amount": 0,
       "fee": 0,
       "timestamp": 0,
@@ -19,14 +19,14 @@
           ]
         }
       },
-      "signature": "9661d384bdb9e0d8b176368d35687917dea6485bfa1031e9280bc3edc3f01ef11af3881c39bf21acd619f54dcb1ac020a9f5272d95518c45fecb1e8e09a8f203",
-      "id": "2481885350051732912"
+      "signature": "22f61b4fd17ef6fe27c5f43d904bfec3c1a21434efe37c0c6018da6ce2ae9bce09ae14ac9d2a9457e84b8da36881e8851fa7436dac09d668e9f9685e8ec0f90e",
+      "id": "15690549463504651285"
     }
   ],
   "timestamp": 0,
   "count": 1,
   "payloadLength": 182,
-  "payloadHash": "b05d1487936d712206b4b33a9a5e27e768177c075a47555d84d9fcd194d8200c",
-  "signature": "58969d0db0fea7ffe52d2fd965255ba92ed6779f864ee14b58bf47a3256a656344afc23b218ee989632c39abae1e03116f21a6eb3de4e58cf6cd03b97df2c405",
-  "id": "8267484498797520584"
+  "payloadHash": "1504e4de9a07c0d96e246eb25c9ce8206370fd5b65c47546f946127c1c34ce46",
+  "signature": "83eb2b44d1c90f1adaa1a25c6d19cbe0afb53a78ac783c412dc528c29fc25b5388698ff93198aae727aea712d654def0ce0b1dc20548b6dbc5d3a401c3bd1c04",
+  "id": "13885154317423810053"
 }

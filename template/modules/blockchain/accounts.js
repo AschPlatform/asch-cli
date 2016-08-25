@@ -253,6 +253,9 @@ Accounts.prototype.onBind = function (_modules) {
 }
 
 Accounts.prototype.open = function (cb, query) {
+	if (!query.secret) {
+		return cb('secret should not be empty');
+	}
 	var keypair = modules.api.crypto.keypair(query.secret);
 	var address = self.generateAddressByPublicKey(keypair.publicKey.toString("hex"));
 	var account = private.getAccount(address);
@@ -262,8 +265,37 @@ Accounts.prototype.open = function (cb, query) {
 			address: address,
 			publicKey: keypair.publicKey.toString("hex")
 		});
-	}else{
+	} else {
 		account.publicKey = keypair.publicKey.toString("hex");
+	}
+
+	cb(null, {account: account});
+}
+
+Accounts.prototype.open2 = function (cb, query) {
+	if (!query.publicKey) {
+		return cb("publicKey should not be empty");
+	}
+
+	try {
+		var publicKey = new Buffer(query.publicKey, "hex");
+
+		if (publicKey.length != 32) {
+			return cb("publicKey should be hex format");
+		}
+	} catch (e) {
+		return cb("Invalid publicKey");
+	}
+	var address = self.generateAddressByPublicKey(query.publicKey);
+	var account = private.getAccount(address);
+
+	if (!account) {
+		account = private.addAccount({
+			address: address,
+			publicKey: query.publicKey
+		});
+	} else {
+		account.publicKey = query.publicKey;
 	}
 
 	cb(null, {account: account});

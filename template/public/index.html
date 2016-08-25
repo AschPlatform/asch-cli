@@ -1,9 +1,115 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
+    <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
     <title>Asch Dapp Hello World</title>
 </head>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        var dappId = window.location.pathname.split('/')[2];
+        var BASE_URL = '/api/dapps/' + dappId + '/api';
+        var State = {
+            isLogin: false
+        };
+        var UserInfo = {
+            secret: '',
+            balance: 0
+        };
+
+        function refreshAccount(account) {
+            UserInfo.balance = Number(account.balance['XAS']) / 100000000;
+            $('#balance').html(UserInfo.balance);
+        }
+
+        function onLogin(account) {
+            State.isLogin = true;
+            $('#loginBtn').val('Logout');
+            $('#secretInput').hide();
+
+            $('#accountPanel').show();
+            refreshAccount(account);
+        }
+
+        function login(secret) {
+            $.ajax({
+                type: 'POST',
+                url: BASE_URL + '/openAccount',
+                data: {
+                    secret: secret
+                },
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert(ret.error);
+                        return;
+                    }
+                    UserInfo.secret = secret;
+                    onLogin(ret.account);
+                }
+            });
+        }
+
+        function logout() {
+            $('#loginBtn').val('Login');
+            $('#secretInput').show();
+            $('#accountPanel').hide();
+            State.isLogin = false;
+        }
+
+        function withdrawal(secret, amount) {
+            $.ajax({
+                type: 'POST',
+                url: BASE_URL + '/withdrawal',
+                data: {
+                    secret: secret,
+                    amount: amount
+                },
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert(ret.error);
+                        return;
+                    }
+                    $('#withdrawalAmountinput').val('');
+                    setTimeout(login.bind(null, secret), 1000 * 10);
+                }
+            });
+        }
+
+        $('#loginBtn').click(function () {
+            if (State.isLogin) {
+                logout();
+            } else {
+                login($('#secretInput').val());
+            }
+        });
+
+        $('#withdrawalBtn').click(function () {
+            var amount = Number($('#withdrawalAmountinput').val());
+            if (amount <= 0 || isNaN(amount)) {
+                return alert('金额输入不正确!');
+            }
+            var realAmount = parseFloat((amount * 100000000).toFixed(0));
+            withdrawal(UserInfo.secret, realAmount);
+        });
+    });
+</script>
+
 <body>
+    <div>
+        <input type="password" id="secretInput">
+        <input type="button" value="Login" id="loginBtn">
+    </div>
+    <div id="accountPanel" style="display: none;">
+        <p><strong>Balance(XAS)</strong> <span id="balance">0</span></p>
+        <input type="text" id="withdrawalAmountinput">
+        <input type="button" value="Withdrawal" id="withdrawalBtn">
+    </div>
 </body>
+
 </html>

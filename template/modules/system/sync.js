@@ -1,6 +1,7 @@
 var bignum = require("bignumber");
 var async = require("async");
-var ip = require("ip")
+var ip = require("ip");
+var TransactionTypes = require("../helpers/transaction-types.js");
 
 var private = {}, self = null,
 	library = null, modules = null;
@@ -175,7 +176,6 @@ private.withdrawalSync = function (cb) {
 				if (err) {
 					return cb(err);
 				}
-
 				function send(transactions, cb) {
 					async.eachSeries(transactions, function (transaction, cb) {
 						var address = modules.blockchain.accounts.generateAddressByPublicKey(transaction.senderPublicKey);
@@ -206,7 +206,7 @@ private.withdrawalSync = function (cb) {
 						],
 						fields: [{"b.height": "height"}],
 						condition: {
-							"t.type": 2,
+							"t.type": TransactionTypes.WITHDRAWAL,
 							"t.id": res.id
 						},
 						limit: 1
@@ -230,7 +230,7 @@ private.withdrawalSync = function (cb) {
 							],
 							fields: [{"t.amount": "amount"}, {"t.id": "id"}, {"t.senderPublicKey": "senderPublicKey"}],
 							condition: {
-								"type": 2,
+								"type": TransactionTypes.WITHDRAWAL,
 								"b.height": {$gt: res[0].height}
 							},
 							sort: {
@@ -260,7 +260,7 @@ private.withdrawalSync = function (cb) {
 						],
 						fields: [{"t.amount": "amount"}, {"t.id": "id"}, {"t.senderPublicKey": "senderPublicKey"}],
 						condition: {
-							"type": 2
+							"type": TransactionTypes.WITHDRAWAL
 						},
 						sort: {
 							"b.height": 1
@@ -305,7 +305,7 @@ private.balanceSync = function (cb) {
 				],
 				fields: [{"t_dt.src_id": "id"}],
 				condition: {
-					type: 1
+					type: TransactionTypes.OUT_TRANSFER
 				},
 				sort: {
 					"b.height": -1
@@ -333,7 +333,7 @@ private.balanceSync = function (cb) {
 						async.eachSeries(transactions, function (transaction, cb) {
 							modules.blockchain.accounts.setAccountAndGet({publicKey: transaction.senderPublicKey}, function (err, recipient) {
 								var trs = modules.logic.transaction.create({
-									type: 1,
+									type: TransactionTypes.OUT_TRANSFER,
 									sender: sender,
 									keypair: executor.keypair,
 									amount: transaction.amount,
@@ -389,7 +389,7 @@ Sync.prototype.onBlockchainLoaded = function () {
 		library.sequence.add(private.transactionsSync, function (err) {
 			err && library.logger("Sync#transactionsSync timer", err);
 
-			setTimeout(nextU_TransactionsSync, 5 * 1000)
+			setTimeout(nextU_TransactionsSync, 10 * 1000)
 		});
 	});
 

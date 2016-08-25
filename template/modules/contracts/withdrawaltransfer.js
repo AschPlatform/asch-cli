@@ -93,6 +93,7 @@ WithdrawalTransfer.prototype.onBind = function (_modules) {
 }
 
 WithdrawalTransfer.prototype.withdrawal = function (cb, query) {
+	query.amount = Number(query.amount);
 	library.validator.validate(query, {
 		type: "object",
 		properties: {

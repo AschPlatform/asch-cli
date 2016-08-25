@@ -257,6 +257,7 @@ function registerDapp(options) {
   var trs = aschJS.dapp.createDapp(options.secret, options.secondSecret, dapp);
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.success);
+    console.log('DappId:', trs.id);
   });
 }
 
