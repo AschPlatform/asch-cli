@@ -20,11 +20,11 @@ var templatePath = path.join(__dirname, "..", "template");
 var dappCategories = [
 	"Common",
 	"Business",
-	"Catalogs",
+	"Social",
 	"Education",
 	"Entertainment",
-	"Multimedia",
-	"Networking",
+	"News",
+	"Life",
 	"Utilities",
 	"Games"
 ];
