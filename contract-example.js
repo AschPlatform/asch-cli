@@ -1,9 +1,10 @@
+var TransactionTypes = require("../helpers/transaction-types.js");
+
 var private = {}, self = null,
 	library = null, modules = null;
 
 function ExampleContract(cb, _library) {
 	self = this;
-	//self.type = null;
 	library = _library;
 	cb(null, self);
 }
@@ -58,7 +59,7 @@ ExampleContract.prototype.normalize = function (asset, cb) {
 
 ExampleContract.prototype.onBind = function (_modules) {
 	modules = _modules;
-	modules.logic.transaction.attachAssetType(self.type, self);
+	modules.logic.transaction.attachAssetType(__TYPE__, self);
 }
 
 module.exports = ExampleContract;

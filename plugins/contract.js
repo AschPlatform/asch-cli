@@ -16,13 +16,18 @@ function addContract() {
 			}
 		], function (result) {
 			var name = result.filename;
-			var type = filenames.length + 1;
+			var type = filenames.length;
 			var filename = result.filename + ".js";
 
-			var exampleContract = fs.readFileSync(path.join(__dirname, "..", contract-example.js), "utf8");
+			var exampleContract = fs.readFileSync(path.join(__dirname, "..", "contract-example.js"), "utf8");
 			exampleContract = exampleContract.replace(/ExampleContract/g, name);
-			exampleContract = exampleContract.replace("//self.type = null;", "self.type = " + type);
+			exampleContract = exampleContract.replace(/__TYPE__/g, 'TransactionTypes.' + name.toUpperCase());
 			fs.writeFileSync(path.join(contractsPath, filename), exampleContract, "utf8");
+
+			var typesFile = path.resolve("./modules/helpers/transaction-types.js");
+			var transactionTypes = require(typesFile);
+			transactionTypes[name.toUpperCase()] = type;
+			fs.writeFileSync(typesFile, 'module.exports = ' + JSON.stringify(transactionTypes, null, 2), "utf8");
 
 			console.log("New contract created: " + ("./contracts/" + filename));
 			console.log("Updating contracts list");
@@ -85,7 +90,7 @@ module.exports = function (program) {
 		.option("-a, --add", "add new contract")
 		.option("-d, --delete", "delete contract")
 		.action(function (options) {
-			var exist = fs.exists(contractsPath);
+			var exist = fs.existsSync(contractsPath);
 			if (exist) {
 				if (options.add) {
 					addContract();
