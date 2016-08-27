@@ -8,59 +8,10 @@ A command line interface for bootstrapping and managing [Asch](https://asch.so/)
 npm install -g asch-cli
 ```
 
-## Apps
+## Documents
 
-### Add app
+https://github.com/sqfasd/asch_docs
 
-```
-asch-cli dapps -a
-```
-
-### Deposit
-
-```
-asch-cli dapps -d
-```
-
-### Withdraw
-
-```
-asch-cli dapps -w
-```
-
-## Contracts
-
-### Add contract
-
-```
-asch-cli contract -a
-```
-
-### Delete contract
-
-```
-asch-cli contract -d
-```
-
-## Crypto
-
-### Generate public key
-
-```
-asch-cli crypto -p
-```
-
-### Generate accounts
-
-```
-asch-cli crypto -g
-```
-
-### Help
-
-```
-asch-cli -h
-```
 
 ## Authors
 
