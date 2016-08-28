@@ -19,8 +19,10 @@ function addContract() {
 			var type = filenames.length;
 			var filename = result.filename + ".js";
 
-			var className = new String(name);
-			className[0] = className[0].toUpperCase();
+      var className = '';
+      for (var i = 0; i < name.length; ++i) {
+        className += (i==0 ? name[i].toUpperCase() : name[i]);
+      }
 			var exampleContract = fs.readFileSync(path.join(__dirname, "..", "contract-example.js"), "utf8");
 			exampleContract = exampleContract.replace(/ExampleContract/g, className);
 			exampleContract = exampleContract.replace(/__TYPE__/g, 'TransactionTypes.' + name.toUpperCase());
@@ -71,7 +73,7 @@ function deleteContract() {
 			fs.unlinkSync(contractPath);
 			console.log("Contract removed");
 			console.log("Updating contracts list");
-			
+
 			var text = fs.readFileSync(path.join(".", "modules.full.json"), "utf8");
 			var modules = JSON.parse(text);
 			var name = "contracts/" + name;
