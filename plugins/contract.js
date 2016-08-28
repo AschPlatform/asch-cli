@@ -19,8 +19,10 @@ function addContract() {
 			var type = filenames.length;
 			var filename = result.filename + ".js";
 
+			var className = new String(name);
+			className[0] = className[0].toUpperCase();
 			var exampleContract = fs.readFileSync(path.join(__dirname, "..", "contract-example.js"), "utf8");
-			exampleContract = exampleContract.replace(/ExampleContract/g, name);
+			exampleContract = exampleContract.replace(/ExampleContract/g, className);
 			exampleContract = exampleContract.replace(/__TYPE__/g, 'TransactionTypes.' + name.toUpperCase());
 			fs.writeFileSync(path.join(contractsPath, filename), exampleContract, "utf8");
 
