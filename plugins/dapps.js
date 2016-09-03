@@ -460,10 +460,11 @@ function depositDapp() {
 			required: false
 		}
 	], function (result) {
+		var realAmount = parseFloat((parseInt(result.amount) * 100000000).toFixed(0));
 		var body = {
 			secret: result.secret,
 			dappId: result.dappId,
-			amount: parseInt(result.amount)
+			amount: realAmount
 		};
 
 		if (result.secondSecret && result.secondSecret.length > 0) {
