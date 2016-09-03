@@ -144,7 +144,7 @@ function delegatestat() {
 				}
 				return l.block.timestamp - r.block.timestamp;
 			});
-			console.log("name\taddress\trate\tapproval\tproductivity\tproduced\theight\tid\ttime");
+			console.log("name\taddress\trate\tapproval\tproductivity\tproduced\tbalance\theight\tid\ttime");
 			for (var i in delegates) {
 				var d = delegates[i].delegate;
 				var b = delegates[i].block;
@@ -155,6 +155,7 @@ function delegatestat() {
 						d.approval,
 						d.productivity,
 						d.producedblocks,
+						d.balance / 100000000,
 						b ? b.height : '',
 						b ? b.id : '',
 						AschUtils.format.fullTimestamp(b ? b.timestamp : ''),
