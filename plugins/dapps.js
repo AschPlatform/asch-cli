@@ -333,17 +333,10 @@ function changeDapp() {
 					message: "Enter secret of your testnet account",
 					validate: function (value) {
 						var done = this.async();
-
-						if (value.length == 0) {
-							done("Secret is too short, minimum is 1 character");
+						if (!accountHelper.isValidSecret(value)) {
+							done("Secret is not validated by BIP39");
 							return;
 						}
-
-						if (value.length > 100) {
-							done("Secret is too long, maximum is 100 characters");
-							return;
-						}
-
 						done(true);
 					}
 				},
@@ -360,65 +353,103 @@ function changeDapp() {
 
 				var dappPath = path.join(".", "dapps", dappId);
 				var dappGenesis = JSON.parse(fs.readFileSync(path.join(dappPath, "genesis.json"), "utf8"));
-
 				inquirer.prompt([
 					{
 						type: "confirm",
-						name: "confirmed",
-						message: "Continue with exists forgers public keys",
-						required: true,
-					}], function (result) {
-						if (result.confirmed) {
-							publicKeys = dappGenesis.delegates;
-						}
-
+						name: "inbuiltAsset",
+						message: "Do you want publish a inbuilt asset in this dapp?",
+						default: false
+					}
+				], function (result) {
+					var assetInfo;
+					if (result.inbuiltAsset) {
 						inquirer.prompt([
 							{
 								type: "input",
-								name: "publicKeys",
-								message: "Enter public keys of dapp forgers - hex array, use ',' for separator",
-								default: account.keypair.publicKey,
-								validate: function (value) {
-									var done = this.async();
-
-									var publicKeys = value.split(",");
-
-									if (publicKeys.length == 0) {
-										done("DApp requires at least 1 public key");
-										return;
-									}
-
-									for (var i in publicKeys) {
-										try {
-											var b = new Buffer(publicKeys[i], "hex");
-											if (b.length != 32) {
-												done("Invalid public key: " + publicKeys[i]);
-												return;
-											}
-										} catch (e) {
-											done("Invalid hex for public key: " + publicKeys[i]);
-											return;
-										}
-									}
-
-									done(true);
-								}
+								name: "assetName",
+								message: "Enter asset name, for example: BTC, CNY, USD, MYASSET",
+								default: ''
+							},
+							{
+								type: "input",
+								name: "assetAmount",
+								message: "Enter asset total amount",
+								default: 1000000
 							}
 						], function (result) {
-							console.log("Creating DApp genesis block");
+							if (!result.assetName || result.assetName === 'XAS') {
+								return next('invalid inbuilt asset name');
+							}
+							var assetAmount = Number(result.assetAmount);
+							if (!assetAmount || isNaN(assetAmount) || assetAmount < 0) {
+								return next('invalid inbuilt asset amount');
+							}
+							assetInfo = {
+								name: result.assetName,
+								amount: assetAmount
+							};
+						});
+					}
 
-							var dappBlock = dappHelper.new(account, dappGenesis, result.publicKeys.split(","));
-							var dappGenesisBlockJson = JSON.stringify(dappBlock, null, 2);
-
-							try {
-								fs.writeFileSync(path.join(dappPath, "genesis.json"), dappGenesisBlockJson, "utf8");
-							} catch (e) {
-								return console.log(err);
+					inquirer.prompt([
+						{
+							type: "confirm",
+							name: "confirmed",
+							message: "Continue with exists forgers public keys",
+							required: true,
+						}], function (result) {
+							if (result.confirmed) {
+								publicKeys = dappGenesis.delegates;
 							}
 
-							console.log("Done");
-						});
+							inquirer.prompt([
+								{
+									type: "input",
+									name: "publicKeys",
+									message: "Enter public keys of dapp forgers - hex array, use ',' for separator",
+									default: account.keypair.publicKey,
+									validate: function (value) {
+										var done = this.async();
+
+										var publicKeys = value.split(",");
+
+										if (publicKeys.length == 0) {
+											done("DApp requires at least 1 public key");
+											return;
+										}
+
+										for (var i in publicKeys) {
+											try {
+												var b = new Buffer(publicKeys[i], "hex");
+												if (b.length != 32) {
+													done("Invalid public key: " + publicKeys[i]);
+													return;
+												}
+											} catch (e) {
+												done("Invalid hex for public key: " + publicKeys[i]);
+												return;
+											}
+										}
+
+										done(true);
+									}
+								}
+							], function (result) {
+								console.log("Creating DApp genesis block");
+
+								var dappBlock = dappHelper.new(account, result.publicKeys.split(","), assetInfo);
+								var dappGenesisBlockJson = JSON.stringify(dappBlock, null, 2);
+
+								try {
+									fs.writeFileSync(path.join(dappPath, "genesis.json"), dappGenesisBlockJson, "utf8");
+								} catch (e) {
+									return console.log(err);
+								}
+
+								console.log("Done");
+							});
 					});
+				});
 			});
 		}
 	});
@@ -557,6 +588,104 @@ function withdrawalDapp() {
 		});
 }
 
+function uninstallDapp() {
+	inquirer.prompt([
+		{
+			type: "input",
+			name: "dappId",
+			message: "Enter dapp id",
+			validate: function (value) {
+				return value.length > 0 && value.length < 100;
+			},
+			required: true
+		},
+		{
+				type: "input",
+				name: "host",
+				message: "Host and port",
+				default: "localhost:4096",
+				required: true
+		},
+		{
+			type: "password",
+			name: "masterpassword",
+			message: "Enter dapp master password",
+			required: true
+		}], function (result) {
+
+			var body = {
+				id: String(result.dappId),
+				master: String(result.masterpassword)
+			};
+
+			request({
+				url: "http://" + result.host +  "/api/dapps/uninstall",
+				method: "post",
+				json: true,
+				body: body
+			}, function (err, resp, body) {
+				if (err) {
+					return console.log(err.toString());
+				}
+
+				if (body.success) {
+					console.log("Done!");
+				} else {
+					return console.log(body.error);
+				}
+			});
+		});
+}
+
+function installDapp() {
+	inquirer.prompt([
+		{
+			type: "input",
+			name: "dappId",
+			message: "Enter dapp id",
+			validate: function (value) {
+				return value.length > 0 && value.length < 100;
+			},
+			required: true
+		},
+		{
+				type: "input",
+				name: "host",
+				message: "Host and port",
+				default: "localhost:4096",
+				required: true
+		},
+		{
+			type: "password",
+			name: "masterpassword",
+			message: "Enter dapp master password",
+			required: true
+		}], function (result) {
+
+			var body = {
+				id: String(result.dappId),
+				master: String(result.masterpassword)
+			};
+
+			request({
+				url: "http://" + result.host +  "/api/dapps/install",
+				method: "post",
+				json: true,
+				body: body
+			}, function (err, resp, body) {
+				if (err) {
+					return console.log(err.toString());
+				}
+
+				if (body.success) {
+					console.log("Done!", body.path);
+				} else {
+					return console.log(body.error);
+				}
+			});
+		});
+}
+
 module.exports = function (program) {
   program
 		.command("dapps")
@@ -565,6 +694,8 @@ module.exports = function (program) {
 		.option("-c, --change", "change dapp genesis block")
 		.option("-d, --deposit", "deposit funds to dapp")
 		.option("-w, --withdrawal", "withdraw funds from dapp")
+		.option("-i, --install", "install dapp")
+		.option("-u, --uninstall", "uninstall dapp")
 		.action(function (options) {
 			if (options.add) {
 				addDapp();
@@ -574,6 +705,10 @@ module.exports = function (program) {
 				depositDapp();
 			} else if (options.withdrawal) {
 				withdrawalDapp();
+			} else if (options.install) {
+				installDapp();
+			} else if (options.uninstall) {
+				uninstallDapp();
 			} else {
 				console.log("'node dapps -h' to get help");
 			}
