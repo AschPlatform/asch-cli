@@ -148,7 +148,7 @@ function delegatestat() {
 			for (var i in delegates) {
 				var d = delegates[i].delegate;
 				var b = delegates[i].block;
-				console.log('%s\t%s\t%d\t%s%%\t%s%%\t%d\t%d\t%s\t%s(%s)',
+				console.log('%s\t%s\t%d\t%s%%\t%s%%\t%d\t%d\t%s\t%s\t%s(%s)',
 						d.username,
 						d.address,
 						d.rate,
