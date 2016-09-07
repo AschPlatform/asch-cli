@@ -47,7 +47,7 @@ function peerstat() {
 			return;
 		}
 		async.map(result.peers, function (peer, next) {
-			getApi().get('/api/blocks/getHeight', function (err, result) {
+			new Api({host: peer.ip, port: peer.port}).get('/api/blocks/getHeight', function (err, result) {
 				if (err) {
 					console.log('%s:%d %s %d', peer.ip, peer.port, peer.version, err);
 					next(null, {peer: peer, error: err});
