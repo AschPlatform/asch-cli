@@ -21,11 +21,12 @@ function Multisignatures(cb, _library) {
  * @param publicKey - Public key of account.
  * @param {Multisignatures~pendingCallback} cb - Callback handles response from Asch.
  */
-Multisignatures.prototype.pending = function (publicKey, cb) {
+Multisignatures.prototype.pending = function (publicKey, isOutTransfer, cb) {
 	var message = {
 		call: "multisignatures#pending",
 		args: {
-			publicKey: publicKey
+			publicKey: publicKey,
+			isOutTransfer: isOutTransfer
 		}
 	};
 

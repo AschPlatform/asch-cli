@@ -133,7 +133,7 @@ private.loadMultisignatures = function (cb) {
 		if (err) {
 			return cb(err);
 		}
-		modules.api.multisignatures.pending(executor.keypair.publicKey.toString("hex"), function (err, resp) {
+		modules.api.multisignatures.pending(executor.keypair.publicKey.toString("hex"), true, function (err, resp) {
 			if (err) {
 				return cb(err.toString());
 			} else {
@@ -141,10 +141,6 @@ private.loadMultisignatures = function (cb) {
 				var transactions = resp.transactions;
 
 				async.eachSeries(transactions, function (item, cb) {
-					if (item.transaction.type != 11) {
-						return setImmediate(cb);
-					}
-
 					modules.api.multisignatures.sign(
 						executor.secret,
 						null,
