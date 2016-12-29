@@ -210,8 +210,8 @@ function registerDelegate(options) {
   //   console.log(err || result);
   // });
   var trs = aschJS.delegate.createDelegate(
-    options.secret,
     options.username,
+    options.secret,
     options.secondSecret
   );
   getApi().broadcastTransaction(trs, function (err, result) {
@@ -224,8 +224,8 @@ function vote(secret, publicKeys, op, secondSecret) {
     return op + el;
   });
   var trs = aschJS.vote.createVote(
-    secret,
     votes,
+    secret,
     secondSecret
   );
   getApi().broadcastTransaction(trs, function (err, result) {
@@ -254,7 +254,7 @@ function registerDapp(options) {
     return;
   }
   var dapp = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
-  var trs = aschJS.dapp.createDapp(options.secret, options.secondSecret, dapp);
+  var trs = aschJS.dapp.createDapp(dapp, options.secret, options.secondSecret);
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.success);
     console.log('DappId:', trs.id);
