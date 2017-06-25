@@ -10,18 +10,9 @@ function getBytes(block, skipSignature) {
 
 	var bb = new ByteBuffer(size, true);
 
-	if (block.prevBlockId) {
-		var pb = bignum(block.prevBlockId).toBuffer({size: '8'});
-		for (var i = 0; i < 8; i++) {
-			bb.writeByte(pb[i]);
-		}
-	} else {
-		for (var i = 0; i < 8; i++) {
-			bb.writeByte(0);
-		}
-	}
+	bb.writeString(block.prevBlockId || '0')
 
-	bb.writeInt(block.height);
+	bb.writeLong(block.height);
 	bb.writeInt(block.timestamp);
 	bb.writeInt(block.payloadLength);
 
@@ -35,16 +26,9 @@ function getBytes(block, skipSignature) {
 		bb.writeByte(pb[i]);
 	}
 
-	if (block.pointId) {
-		var pb = bignum(block.pointId).toBuffer({ size: '8' });
-		for (var i = 0; i < 8; i++) {
-			bb.writeByte(pb[i]);
-		}
-	}
+	bb.writeString(block.pointId || '0')
 
-	if (block.pointHeight) {
-		bb.writeInt(block.pointHeight);	
-	}
+	bb.writeLong(block.pointHeight || 0);
 
 	bb.writeInt(block.count);
 
@@ -76,42 +60,43 @@ module.exports = {
 			payloadHash: crypto.createHash('sha256')
 		}
 	
-		var delegates = publicKeys.map(function (key) {
-			return "+" + key;
-		})
-		var delegatesTransaction = {
-			type: 2,
-			amount: 0,
-			fee: 0,
-			timestamp: 0,
-			recipientId: null,
-			senderId: genesisAccount.address,
-			senderPublicKey: genesisAccount.keypair.publicKey,
-			asset: {
-				delegates: {
-					list: delegates
-				}
-			}
-		}
-		var bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
-		delegatesTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
-		bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
-		delegatesTransaction.id = cryptoLib.getId(bytes);
+		// var delegates = publicKeys.map(function (key) {
+		// 	return "+" + key;
+		// })
+		// var delegatesTransaction = {
+		// 	type: 2,
+		// 	amount: 0,
+		// 	fee: 0,
+		// 	timestamp: 0,
+		// 	recipientId: null,
+		// 	senderId: genesisAccount.address,
+		// 	senderPublicKey: genesisAccount.keypair.publicKey,
+		// 	asset: {
+		// 		delegates: {
+		// 			list: delegates
+		// 		}
+		// 	}
+		// }
+		// var bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
+		// delegatesTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
+		// bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
+		// delegatesTransaction.id = cryptoLib.getId(bytes);
 
-		block.payloadLength += bytes.length;
-		block.payloadHash.update(bytes);
-		block.transactions.push(delegatesTransaction);
+		// block.payloadLength += bytes.length;
+		// block.payloadHash.update(bytes);
+		// block.transactions.push(delegatesTransaction);
 
 		if (assetInfo) {
 			var assetTrs = {
-				type: 0,
-				amount: assetInfo.amount * 100000000,
-				token: assetInfo.name,
-				fee: 0,
+				fee: '0',
 				timestamp: 0,
-				recipientId: genesisAccount.address,
-				senderId: sender.address,
-				senderPublicKey: sender.keypair.publicKey
+				senderPublicKey: sender.keypair.publicKey,
+				func: 'core.transfer',
+				args: [
+					assetInfo.name,
+					String(assetInfo.amount * 100000000),
+					genesisAccount.address
+				]
 			}
 			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
 			assetTrs.signature = cryptoLib.sign(sender.keypair, bytes);

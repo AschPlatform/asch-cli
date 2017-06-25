@@ -38,7 +38,7 @@ function addDapp() {
 	var dappPath;
 	var assetInfo;
 	async.series([
-		function(next) {
+		function (next) {
 			inquirer.prompt([
 				{
 					type: "password",
@@ -66,7 +66,7 @@ function addDapp() {
 				next();
 			})
 		},
-		function(next) {
+		function (next) {
 			inquirer.prompt([
 				{
 					type: "input",
@@ -188,7 +188,7 @@ function addDapp() {
 				next();
 			});
 		},
-		function(next) {
+		function (next) {
 			inquirer.prompt([
 				{
 					type: "confirm",
@@ -229,7 +229,7 @@ function addDapp() {
 				});
 			});
 		},
-		function(next) {
+		function (next) {
 			inquirer.prompt([
 				{
 					type: "input",
@@ -270,7 +270,7 @@ function addDapp() {
 				next();
 			});
 		},
-		function(next) {
+		function (next) {
 			console.log("Fetching Asch Dapps SDK");
 			fs.exists(dappsPath, function (exists) {
 				if (!exists) {
@@ -280,23 +280,23 @@ function addDapp() {
 				}
 			});
 		},
-		function(next) {
+		function (next) {
 			dappPath = path.join(dappsPath, dappTrs.id);
-			fsExtra.copy(templatePath, dappPath, {clobber: true}, next);
+			fsExtra.copy(templatePath, dappPath, { clobber: true }, next);
 		},
-		function(next) {
+		function (next) {
 			console.log("Saving genesis block");
 			var genesisBlockJson = JSON.stringify(dappBlock, null, 2);
 			fs.writeFile(path.join(dappPath, "genesis.json"), genesisBlockJson, "utf8", next);
 		},
-		function(next) {
+		function (next) {
 			console.log("Saving dapp meta information");
 			var dappParamsJson = JSON.stringify(dappParams, null, 2);
 			fs.writeFile(path.join(dappPath, "dapp.json"), dappParamsJson, "utf8", next);
 		},
 		function (next) {
 			console.log("Registering dapp in localnet");
-			var api = new Api({port: 4096});
+			var api = new Api({ port: 4096 });
 			api.broadcastTransaction(dappTrs, function (err) {
 				if (err) {
 					next("Failed to register dapp: " + err);
@@ -305,7 +305,7 @@ function addDapp() {
 				}
 			});
 		}
-	], function(err) {
+	], function (err) {
 		if (err) {
 			console.log(err);
 		} else {
@@ -443,12 +443,12 @@ function changeDapp() {
 								try {
 									fs.writeFileSync(path.join(dappPath, "genesis.json"), dappGenesisBlockJson, "utf8");
 								} catch (e) {
-									return console.log(err);
+									return console.log(e);
 								}
 
 								console.log("Done");
 							});
-					});
+						});
 				});
 			});
 		}
@@ -600,11 +600,11 @@ function uninstallDapp() {
 			required: true
 		},
 		{
-				type: "input",
-				name: "host",
-				message: "Host and port",
-				default: "localhost:4096",
-				required: true
+			type: "input",
+			name: "host",
+			message: "Host and port",
+			default: "localhost:4096",
+			required: true
 		},
 		{
 			type: "password",
@@ -619,7 +619,7 @@ function uninstallDapp() {
 			};
 
 			request({
-				url: "http://" + result.host +  "/api/dapps/uninstall",
+				url: "http://" + result.host + "/api/dapps/uninstall",
 				method: "post",
 				json: true,
 				body: body
@@ -649,11 +649,11 @@ function installDapp() {
 			required: true
 		},
 		{
-				type: "input",
-				name: "host",
-				message: "Host and port",
-				default: "localhost:4096",
-				required: true
+			type: "input",
+			name: "host",
+			message: "Host and port",
+			default: "localhost:4096",
+			required: true
 		},
 		{
 			type: "password",
@@ -668,7 +668,7 @@ function installDapp() {
 			};
 
 			request({
-				url: "http://" + result.host +  "/api/dapps/install",
+				url: "http://" + result.host + "/api/dapps/install",
 				method: "post",
 				json: true,
 				body: body
@@ -686,6 +686,25 @@ function installDapp() {
 		});
 }
 
+function createGenesisBlock() {
+	var account = accountHelper.account('someone manual strong movie roof episode eight spatial brown soldier soup motor')
+	account.address = 'A8QCwz5Vs77UGX9YqBg9kJ6AZmsXQBC8vj'
+	var assetInfo = {
+		name: 'CNY',
+		amount: '1000000'
+	}
+	var dappBlock = dappHelper.new(account, null, assetInfo);
+	var dappGenesisBlockJson = JSON.stringify(dappBlock, null, 2);
+
+	try {
+		fs.writeFileSync('genesis.json', dappGenesisBlockJson, "utf8");
+	} catch (e) {
+		return console.log(e);
+	}
+
+	console.log("Done");
+}
+
 module.exports = function (program) {
   program
 		.command("dapps")
@@ -696,6 +715,7 @@ module.exports = function (program) {
 		.option("-w, --withdrawal", "withdraw funds from dapp")
 		.option("-i, --install", "install dapp")
 		.option("-u, --uninstall", "uninstall dapp")
+		.option("-g, --genesis", "create genesis block")
 		.action(function (options) {
 			if (options.add) {
 				addDapp();
@@ -709,6 +729,8 @@ module.exports = function (program) {
 				installDapp();
 			} else if (options.uninstall) {
 				uninstallDapp();
+			} else if (options.genesis) {
+				createGenesisBlock()
 			} else {
 				console.log("'node dapps -h' to get help");
 			}

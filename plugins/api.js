@@ -196,7 +196,7 @@ function sendMoney(options) {
     options.secondSecret
   );
   getApi().broadcastTransaction(trs, function (err, result) {
-    console.log(err || result.success);
+    console.log(err || result.transactionId)
   });
 }
 
@@ -215,7 +215,7 @@ function registerDelegate(options) {
     options.secondSecret
   );
   getApi().broadcastTransaction(trs, function (err, result) {
-    console.log(err || result.success);
+    console.log(err || result.transactionId)
   });
 }
 
@@ -229,7 +229,7 @@ function vote(secret, publicKeys, op, secondSecret) {
     secondSecret
   );
   getApi().broadcastTransaction(trs, function (err, result) {
-    console.log(err || result.success);
+    console.log(err || result.transactionId)
   });
 }
 
@@ -244,7 +244,7 @@ function downvote(options) {
 function setSecondSecret(options) {
   var trs = aschJS.signature.createSignature(options.secret, options.secondSecret);
   getApi().broadcastTransaction(trs, function (err, result) {
-    console.log(err || result.success);
+    console.log(err || result.transactionId)
   });
 }
 
@@ -254,10 +254,9 @@ function registerDapp(options) {
     return;
   }
   var dapp = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
-  var trs = aschJS.dapp.createDapp(dapp, options.secret, options.secondSecret);
+  var trs = aschJS.dapp.createDApp(dapp, options.secret, options.secondSecret);
   getApi().broadcastTransaction(trs, function (err, result) {
-    console.log(err || result.success);
-    console.log('DappId:', trs.id);
+    console.log(err || result.transactionId)
   });
 }
 
