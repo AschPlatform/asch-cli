@@ -91,7 +91,7 @@ module.exports = {
 				fee: '0',
 				timestamp: 0,
 				senderPublicKey: sender.keypair.publicKey,
-				func: 'core.transfer',
+				type: 3,
 				args: [
 					assetInfo.name,
 					String(assetInfo.amount * 100000000),
@@ -100,11 +100,11 @@ module.exports = {
 			}
 			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
 			assetTrs.signature = cryptoLib.sign(sender.keypair, bytes);
-			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
-			assetTrs.id = cryptoLib.getId(bytes);
-	
 			block.payloadLength += bytes.length;
 			block.payloadHash.update(bytes);
+
+			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
+			assetTrs.id = cryptoLib.getId(bytes);
 			block.transactions.push(assetTrs);
 		}
 		block.count = block.transactions.length;

@@ -260,6 +260,24 @@ function registerDapp(options) {
   });
 }
 
+function deposit(options) {
+  var trs = aschJS.transfer.createInTransfer(options.dapp, options.currency, options.amount, options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function dappTransaction(options) {
+  var trs = aschJS.dapp.createInnerTransaction({
+    fee: '0',
+    type: Number(options.type),
+    args: JSON.parse(options.args)
+  }, options.secret)
+  getApi().put('/api/dapps/' + options.dapp + '/api/transactions/signed', { transaction: trs }, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
 module.exports = function(program) {
   globalOptions = program;
   
@@ -436,4 +454,23 @@ module.exports = function(program) {
     .option("-s, --secondSecret <secret>", "")
     .option("-f, --metafile <metafile>", "dapp meta file")
     .action(registerDapp);
+  
+  program
+    .command("deposit")
+    .description("deposit assets to an app")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-d, --dapp <dapp id>", "dapp id that you want to deposit")
+    .option("-c, --currency <currency>", "deposit currency")
+    .option("-a, --amount <amount>", "deposit amount")
+    .action(deposit);
+
+  program
+    .command("dapptransaction")
+    .description("deposit assets to an app")
+    .option("-e, --secret <secret>", "")
+    .option("-d, --dapp <dapp id>", "dapp id")
+    .option("-t, --type <type>", "transaction type")
+    .option("-a, --args <args>", "json array format")
+    .action(dappTransaction);
 }
