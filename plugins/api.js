@@ -269,7 +269,7 @@ function deposit(options) {
 
 function dappTransaction(options) {
   var trs = aschJS.dapp.createInnerTransaction({
-    fee: '0',
+    fee: options.fee,
     type: Number(options.type),
     args: JSON.parse(options.args)
   }, options.secret)
@@ -472,5 +472,6 @@ module.exports = function(program) {
     .option("-d, --dapp <dapp id>", "dapp id")
     .option("-t, --type <type>", "transaction type")
     .option("-a, --args <args>", "json array format")
+    .option("-f, --fee <fee>", "transaction fee")
     .action(dappTransaction);
 }
