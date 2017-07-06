@@ -6,20 +6,24 @@ var path = require("path");
 var package = require('./package.json');
 
 function main() {
-	program.version(package.version)
-		.option('-H, --host <host>', 'Specify the hostname or ip of the node, default: 127.0.0.1')
-		.option('-P, --port <port>', 'Specify the port of the node, default: 4096')
-		.option('-M, --main', 'Specify the mainnet, default: false')
-	
-	var plugins = fs.readdirSync(path.join(__dirname, 'plugins'));
-	plugins.forEach(function (el) {
-		require('./plugins/' + el)(program);
-	});
+    var default_host = process.env.ASCH_HOST || '127.0.0.1';
+    var default_port = process.env.ASCH_PORT || 4096;
+    program.version(package.version)
+        .option('-H, --host <host>', 'Specify the hostname or ip of the node, default: '  + default_host, default_host)
+        .option('-P, --port <port>', 'Specify the port of the node, default: ' + default_port, default_port)
+        .option('-M, --main', 'Specify the mainnet, default: false')
+    
+    var plugins = fs.readdirSync(path.join(__dirname, 'plugins'));
+    plugins.forEach(function (el) {
+        if (el.endsWith('js')) {
+            require('./plugins/' + el)(program);
+        }
+    });
 
-	if (!process.argv.slice(2).length) {
-		program.outputHelp();
-	}
-	program.parse(process.argv);
+    if (!process.argv.slice(2).length) {
+        program.outputHelp();
+    }
+    program.parse(process.argv);
 }
 
 main();
