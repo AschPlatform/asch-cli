@@ -233,6 +233,37 @@ function vote(secret, publicKeys, op, secondSecret) {
   });
 }
 
+function listdiffvotes(options) {
+    var params = {username: options.username};
+    getApi().get('/api/delegates/get', params, function (err, result) {
+        var publicKey = result.delegate.publicKey;
+        var params = {
+          address: result.delegate.address,
+          limit: options.limit || 101,
+          offset: options.offset || 0,
+        };
+        getApi().get('/api/accounts/delegates', params, function (err, result) {
+            var names_a = [];
+            for (var i = 0; i < result.delegates.length; ++i) {
+                names_a[i] = result.delegates[i].username;
+            }
+            var a = new Set(names_a);
+            var params = {publicKey: publicKey};
+            getApi().get('/api/delegates/voters', params, function (err, result) {
+                var names_b = [];
+                for (var i = 0; i < result.accounts.length; ++i) {
+                    names_b[i] = result.accounts[i].username;
+                }
+                var b = new Set(names_b);
+                var diffab = [...a].filter(x => !b.has(x));
+                var diffba = [...b].filter(x => !a.has(x));
+                console.log('you voted but doesn\'t vote you: \n\t', JSON.stringify(diffab));
+                console.log('\nvoted you but you don\'t voted: \n\t', JSON.stringify(diffba));
+            });
+        });
+    });
+}
+
 function upvote(options) {
   vote(options.secret, options.publicKeys, '+', options.secondSecret);
 }
@@ -424,6 +455,12 @@ module.exports = function(program) {
     .option("-u, --username <username>", "")
     .action(registerDelegate);
     
+  program
+    .command("listdiffvotes")
+    .description("list the votes each other")
+    .option("-u, --username <username>", "", process.env.ASCH_USER)
+    .action(listdiffvotes);
+
   program
     .command("upvote")
     .description("vote for delegates")
