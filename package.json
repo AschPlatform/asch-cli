@@ -35,11 +35,11 @@
     "valid-url": "1.0.9"
   },
   "bugs": {
-    "url": "https://github.com/sqfasd/asch-cli/issues"
+    "url": "https://github.com/AschPlatform/asch-cli/issues"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sqfasd/asch-cli.git"
+    "url": "https://github.com/AschPlatform/asch-cli.git"
   },
-  "homepage": "https://github.com/sqfasd/asch-cli"
+  "homepage": "https://github.com/AschPlatform/asch-cli"
 }
