@@ -504,7 +504,7 @@ module.exports = function(program) {
 
   program
     .command("dapptransaction")
-    .description("deposit assets to an app")
+    .description("create a dapp transaction")
     .option("-e, --secret <secret>", "")
     .option("-d, --dapp <dapp id>", "dapp id")
     .option("-t, --type <type>", "transaction type")
