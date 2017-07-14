@@ -304,7 +304,7 @@ function dappTransaction(options) {
     type: Number(options.type),
     args: JSON.parse(options.args)
   }, options.secret)
-  getApi().put('/api/dapps/' + options.dapp + '/api/transactions/signed', { transaction: trs }, function (err, result) {
+  getApi().put('/api/dapps/' + options.dapp + '/transactions/signed', { transaction: trs }, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
