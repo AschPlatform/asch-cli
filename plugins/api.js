@@ -165,7 +165,8 @@ function getTransactions(options) {
     senderId: options.senderId,
     recipientId: options.recipientId,
     amount: options.amount,
-    fee: options.fee
+    fee: options.fee,
+    message: options.message
   };
   getApi().get('/api/transactions/', params, function (err, result) {
     console.log(err || pretty(result.transactions));
@@ -192,6 +193,7 @@ function sendMoney(options) {
   var trs = aschJS.transaction.createTransaction(
     options.to,
     options.amount * 100000000,
+    options.message,
     options.secret,
     options.secondSecret
   );
@@ -305,6 +307,13 @@ function dappTransaction(options) {
     args: JSON.parse(options.args)
   }, options.secret)
   getApi().put('/api/dapps/' + options.dapp + '/transactions/signed', { transaction: trs }, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function lock(options) {
+  var trs = aschJS.transaction.createLock(options.height, options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
@@ -428,6 +437,7 @@ module.exports = function(program) {
     .option("-s, --sort <field:mode>", "")
     .option("-a, --amount <n>", "")
     .option("-f, --fee <n>", "")
+    .option("-m, --message <message>", "")
     .option("--senderPublicKey <key>", "")
     .option("--senderId <id>", "")
     .option("--recipientId <id>", "")
@@ -445,6 +455,7 @@ module.exports = function(program) {
     .option("-s, --secondSecret <secret>", "")
     .option("-a, --amount <n>", "")
     .option("-t, --to <address>", "")
+    .option("-m, --message <message>", "")
     .action(sendMoney);
   
   program
@@ -511,4 +522,12 @@ module.exports = function(program) {
     .option("-a, --args <args>", "json array format")
     .option("-f, --fee <fee>", "transaction fee")
     .action(dappTransaction);
+
+  program
+    .command("lock")
+    .description("lock account transfer")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-h, --height <height>", "lock height")
+    .action(lock);
 }
