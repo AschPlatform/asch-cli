@@ -192,7 +192,21 @@ function sendMoney(options) {
   // });
   var trs = aschJS.transaction.createTransaction(
     options.to,
-    options.amount * 100000000,
+    options.amount,
+    options.message,
+    options.secret,
+    options.secondSecret
+  );
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function sendAsset(options) {
+  var trs = aschJS.uia.createTransfer(
+    options.currency,
+    options.amount,
+    options.to,
     options.message,
     options.secret,
     options.secondSecret
@@ -457,6 +471,17 @@ module.exports = function(program) {
     .option("-t, --to <address>", "")
     .option("-m, --message <message>", "")
     .action(sendMoney);
+  
+  program
+    .command("sendasset")
+    .description("send asset to some address")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-c, --currency <currency>", "")
+    .option("-a, --amount <amount>", "")
+    .option("-t, --to <address>", "")
+    .option("-m, --message <message>", "")
+    .action(sendAsset);
   
   program
     .command("registerdelegate")
