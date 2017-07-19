@@ -7,7 +7,7 @@ var ByteBuffer = require('bytebuffer');
 
 var sender = accounts.account(cryptoLib.generateSecret());
 
-function getBytes(block) {
+function getBytes(block, skipSignature) {
 	var size = 4 + 4 + 8 + 4 + 8 + 8 + 8 + 4 + 32 + 32 + 64;
 
 	var bb = new ByteBuffer(size, true);
@@ -15,15 +15,9 @@ function getBytes(block) {
 	bb.writeInt(block.timestamp);
 
 	if (block.previousBlock) {
-		var pb = bignum(block.previousBlock).toBuffer({size: '8'});
-
-		for (var i = 0; i < 8; i++) {
-			bb.writeByte(pb[i]);
-		}
+		bb.writeString(block.previousBlock)
 	} else {
-		for (var i = 0; i < 8; i++) {
-			bb.writeByte(0);
-		}
+		bb.writeString('0')
 	}
 
 	bb.writeInt(block.numberOfTransactions);
@@ -43,7 +37,7 @@ function getBytes(block) {
 		bb.writeByte(generatorPublicKeyBuffer[i]);
 	}
 
-	if (block.blockSignature) {
+	if (!skipSignature && block.blockSignature) {
 		var blockSignatureBuffer = new Buffer(block.blockSignature, 'hex');
 		for (var i = 0; i < blockSignatureBuffer.length; i++) {
 			bb.writeByte(blockSignatureBuffer[i]);
@@ -57,6 +51,7 @@ function getBytes(block) {
 }
 
 module.exports = {
+	getBytes: getBytes,
 	new: function (genesisAccount, dapp, accountsFile) {
 		var payloadLength = 0,
 			payloadHash = crypto.createHash('sha256'),
@@ -80,7 +75,7 @@ module.exports = {
 					timestamp: 0,
 					recipientId: parts[0],
 					senderId: sender.address,
-					senderPublicKey: sender.keypair.publicKey 
+					senderPublicKey: sender.keypair.publicKey
 				};
 				totalAmount += trs.amount;
 
@@ -117,7 +112,7 @@ module.exports = {
 			var delegate = accounts.account(cryptoLib.generateSecret());
 			delegates.push(delegate);
 
-			var username = "asch_g" + (i+1);
+			var username = "asch_g" + (i + 1);
 
 			var transaction = {
 				type: 2,
@@ -244,7 +239,7 @@ module.exports = {
 	},
 
 	from: function (genesisBlock, genesisAccount, dapp) {
-		for (var i  in genesisBlock.transactions) {
+		for (var i in genesisBlock.transactions) {
 			var tx = genesisBlock.transactions[i];
 
 			if (tx.type == 5) {

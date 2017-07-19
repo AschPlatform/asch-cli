@@ -1,6 +1,9 @@
 var fs = require('fs');
-var Api = require('../helpers/api.js');
+var crypto = require('crypto');
 var aschJS = require('asch-js');
+var Api = require('../helpers/api.js');
+var blockHelper = require('../helpers/block.js');
+var cryptoLib = require('../lib/crypto.js');
 
 var globalOptions;
 
@@ -332,6 +335,77 @@ function lock(options) {
   });
 }
 
+function getFullBlockById(id) {
+  getApi().get('/api/blocks/full?id=' + id, function (err, result) {
+    console.log(err || pretty(result.block))
+  })
+}
+
+function getFullBlockByHeight(height) {
+  getApi().get('/api/blocks/full?height=' + height, function (err, result) {
+    console.log(err || pretty(result.block))
+  })
+}
+
+function getTransactionBytes(options) {
+  try {
+    var trs = JSON.parse(fs.readFileSync(options.file))
+  } catch (e) {
+    console.log('Invalid transaction format')
+    return
+  }
+  console.log(aschJS.crypto.getBytes(trs, true, true).toString('hex'))
+}
+
+function getTransactionId(options) {
+  try {
+    var trs = JSON.parse(fs.readFileSync(options.file))
+  } catch (e) {
+    console.log('Invalid transaction format')
+    return
+  }
+  console.log(aschJS.crypto.getId(trs))
+}
+
+function getBlockPayloadHash(options) {
+  try {
+    var block = JSON.parse(fs.readFileSync(options.file))
+  } catch (e) {
+    console.log('Invalid transaction format')
+    return
+  }
+  var payloadHash = crypto.createHash('sha256');
+  for (let i = 0; i < block.transactions.length; ++i) {
+    payloadHash.update(aschJS.crypto.getBytes(block.transactions[i], true, true))
+  }
+  console.log(payloadHash.digest().toString('hex'))
+}
+
+function getBlockBytes(options) {
+  try {
+    var block = JSON.parse(fs.readFileSync(options.file))
+  } catch (e) {
+    console.log('Invalid transaction format')
+    return
+  }
+  console.log(blockHelper.getBytes(block, true).toString('hex'))
+}
+
+function getBlockId(options) {
+  try {
+    var block = JSON.parse(fs.readFileSync(options.file))
+  } catch (e) {
+    console.log('Invalid transaction format')
+    return
+  }
+  var bytes = blockHelper.getBytes(block)
+  console.log(cryptoLib.getId(bytes))
+}
+
+function verifyBytes(options) {
+  console.log(aschJS.crypto.verifyBytes(options.bytes, options.signature, options.publicKey))
+}
+
 module.exports = function(program) {
   globalOptions = program;
   
@@ -555,4 +629,52 @@ module.exports = function(program) {
     .option("-s, --secondSecret <secret>", "")
     .option("-h, --height <height>", "lock height")
     .action(lock);
+
+  program
+    .command("getfullblockbyid [id]")
+    .description("get full block by block id")
+    .action(getFullBlockById);
+  
+  program
+    .command("getfullblockbyheight [height]")
+    .description("get full block by block height")
+    .action(getFullBlockByHeight);
+
+  program
+    .command("gettransactionbytes")
+    .description("get transaction bytes")
+    .option("-f, --file <file>", "transaction file")
+    .action(getTransactionBytes)
+  
+  program
+    .command("gettransactionid")
+    .description("get transaction id")
+    .option("-f, --file <file>", "transaction file")
+    .action(getTransactionId)
+  
+  program
+    .command("getblockbytes")
+    .description("get block bytes")
+    .option("-f, --file <file>", "block file")
+    .action(getBlockBytes)
+  
+  program
+    .command("getblockpayloadhash")
+    .description("get block bytes")
+    .option("-f, --file <file>", "block file")
+    .action(getBlockPayloadHash)
+  
+  program
+    .command("getblockid")
+    .description("get block id")
+    .option("-f, --file <file>", "block file")
+    .action(getBlockId)
+  
+  program
+    .command("verifybytes")
+    .description("verify bytes/signature/publickey")
+    .option("-b, --bytes <bytes>", "transaction or block bytes")
+    .option("-s, --signature <signature>", "transaction or block signature")
+    .option("-p, --publicKey <publicKey>", "signer public key")
+    .action(verifyBytes)
 }
