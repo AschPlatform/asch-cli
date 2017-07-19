@@ -192,7 +192,7 @@ function sendMoney(options) {
   // });
   var trs = aschJS.transaction.createTransaction(
     options.to,
-    options.amount,
+    Number(options.amount),
     options.message,
     options.secret,
     options.secondSecret
