@@ -376,7 +376,7 @@ function getBlockPayloadHash(options) {
   }
   var payloadHash = crypto.createHash('sha256');
   for (let i = 0; i < block.transactions.length; ++i) {
-    payloadHash.update(aschJS.crypto.getBytes(block.transactions[i], true, true))
+    payloadHash.update(aschJS.crypto.getBytes(block.transactions[i]))
   }
   console.log(payloadHash.digest().toString('hex'))
 }
