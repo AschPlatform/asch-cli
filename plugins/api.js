@@ -321,7 +321,7 @@ function dappTransaction(options) {
   var trs = aschJS.dapp.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
-    args: JSON.parse(options.args)
+    args: options.args
   }, options.secret)
   getApi().put('/api/dapps/' + options.dapp + '/transactions/signed', { transaction: trs }, function (err, result) {
     console.log(err || result.transactionId)
