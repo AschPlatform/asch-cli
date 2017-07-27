@@ -1,4 +1,11 @@
-# Asch CLI
+[![Build Status](https://travis-ci.org/AschPlatform/asch-cli.png?branch=master)](https://travis-ci.org/AschPlatform/asch-cli)
+[![Author](https://img.shields.io/badge/author-@AschPlatform-blue.svg?style=flat)](http://github.com/AschPlatform) 
+[![License](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat)](http://AschPlatform.mit-license.org)
+[![NpmDownload Status](http://img.shields.io/npm/dm/asch-cli.svg)](https://www.npmjs.org/package/asch-cli)
+[![NPM Version](https://img.shields.io/npm/v/asch-cli.svg?style=flat)](https://www.npmjs.org/package/asch-cli)
+- - -
+
+# Asch Client
 
 A command line interface for bootstrapping and managing [Asch](https://asch.so/) blockchain apps.
 
@@ -62,4 +69,4 @@ npm install -g asch-cli
 
 ## Documents
 
-https://github.com/sqfasd/asch_docs
+https://github.com/AschPlatform/asch-docs
