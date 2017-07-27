@@ -7,7 +7,7 @@
 
 # Asch Client
 
-A command line interface for bootstrapping and managing [Asch](https://asch.so/) blockchain apps.
+A command line interface for bootstrapping and managing [Asch](https://github.com/AschPlatform) blockchain apps.
 
 ## Installation
 
@@ -69,4 +69,4 @@ npm install -g asch-cli
 
 ## Documents
 
-https://github.com/AschPlatform/asch-docs
+[asch-docs](https://github.com/AschPlatform/asch-docs)
