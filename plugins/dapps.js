@@ -183,7 +183,7 @@ function addDapp() {
 					icon: result.icon || "",
 					type: 0
 				};
-				dappTrs = AschJS.dapp.createDapp(account.secret, secondSecret, dappParams);
+				dappTrs = AschJS.dapp.createDApp(account.secret, secondSecret, dappParams);
 				console.log("Generate dapp transaction", dappTrs);
 				next();
 			});
