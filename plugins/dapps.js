@@ -39,6 +39,31 @@ function bip39Validator(input) {
 	done(null, true);
 }
 
+function assetNameValidator(input) {
+	let done = this.async()
+	if (!input || !/^[A-Z]{3,6}$/.test(input)) {
+		return done('Invalid currency symbol')
+	}
+	done(null, true)
+}
+
+function amountValidator(input) {
+	let done = this.async()
+	if (!/^[1-9][0-9]*$/.test(input)) {
+		return done('Amount should be integer')
+	}
+	done(null, true)
+}
+
+function precisionValidator(input) {
+	let done = this.async()
+	let precision = Number(input)
+	if (!Number.isInteger(precision) || precision < 0 || precision > 16) {
+		return done('Precision is between 0 and 16')
+	}
+	done(null, true)
+}
+
 async function prompt(question) {
 	if (Array.isArray(question)) {
 		return await inquirer.prompt(question)
@@ -48,431 +73,168 @@ async function prompt(question) {
 	}
 }
 
-function addDapp() {
-	var account;
-	var secondSecret;
-	var dappParams;
-	var dappTrs;
-	var dappBlock;
-	var dappsPath = path.join(".", "dapps");
-	var dappPath;
-	var assetInfo;
-	async.series([
-		function (next) {
-			inquirer.prompt([
-				{
-					type: "password",
-					name: "secret",
-					message: "Enter secret of your testnet account",
-					validate: function (value) {
-						var done = this.async();
+async function createDAppMetaFile() {
+	let answer = await prompt([
+		{
+			type: "input",
+			name: "name",
+			message: "Enter DApp name",
+			required: true,
+			validate: function (value) {
+				var done = this.async();
+				if (value.length == 0) {
+					done("DApp name is too short, minimum is 1 character");
+					return;
+				}
+				if (value.length > 32) {
+					done("DApp name is too long, maximum is 32 characters");
+					return;
+				}
+				return done(null, true)
+			}
+		},
+		{
+			type: "input",
+			name: "description",
+			message: "Enter DApp description",
+			validate: function (value) {
+				var done = this.async();
 
-						if (!accountHelper.isValidSecret(value)) {
-							done("Secret is not validated by BIP39");
+				if (value.length > 160) {
+					done("DApp description is too long, maximum is 160 characters");
+					return;
+				}
+
+				return done(null, true);
+			}
+		},
+		{
+			type: "input",
+			name: "tags",
+			message: "Enter DApp tags",
+			validate: function (value) {
+				var done = this.async();
+
+				if (value.length > 160) {
+					done("DApp tags is too long, maximum is 160 characters");
+					return;
+				}
+
+				return done(null, true);
+			}
+		},
+		{
+			type: "rawlist",
+			name: "category",
+			required: true,
+			message: "Choose DApp category",
+			choices: dappCategories
+		},
+		{
+			type: "input",
+			name: "link",
+			message: "Enter DApp link",
+			required: true,
+			validate: function (value) {
+				var done = this.async();
+
+				if (!valid_url.isUri(value)) {
+					done("Invalid DApp link, must be a valid url");
+					return;
+				}
+				if (value.indexOf(".zip") != value.length - 4) {
+					done("Invalid DApp link, does not link to zip file");
+					return;
+				}
+				if (value.length > 160) {
+					return done("DApp link is too long, maximum is 160 characters");
+				}
+
+				return done(null, true);
+			}
+		},
+		{
+			type: "input",
+			name: "icon",
+			message: "Enter DApp icon url",
+			validate: function (value) {
+				var done = this.async();
+
+				if (!valid_url.isUri(value)) {
+					return done("Invalid DApp icon, must be a valid url");
+				}
+				var extname = path.extname(value);
+				if (['.png', '.jpg', '.jpeg'].indexOf(extname) == -1) {
+					return done("Invalid DApp icon file type");
+				}
+				if (value.length > 160) {
+					return done("DApp icon url is too long, maximum is 160 characters");
+				}
+
+				return done(null, true);
+			}
+		},
+		{
+			type: "input",
+			name: "delegates",
+			message: "Enter public keys of dapp delegates - hex array, use ',' for separator",
+			validate: function (value) {
+				var done = this.async();
+
+				var publicKeys = value.split(",");
+
+				if (publicKeys.length == 0) {
+					done("DApp requires at least 1 delegate public key");
+					return;
+				}
+
+				for (var i in publicKeys) {
+					try {
+						var b = new Buffer(publicKeys[i], "hex");
+						if (b.length != 32) {
+							done("Invalid public key: " + publicKeys[i]);
 							return;
 						}
-
-						done(true);
+					} catch (e) {
+						done("Invalid hex for public key: " + publicKeys[i]);
+						return;
 					}
-				},
-				{
-					type: "password",
-					name: "secondSecret",
-					message: "Enter second secret of your testnet account if you have"
 				}
-			], function (result) {
-				account = accountHelper.account(result.secret);
-				secondSecret = result.secondSecret;
-				next();
-			})
+				done(null, true);
+			}
 		},
-		function (next) {
-			inquirer.prompt([
-				{
-					type: "input",
-					name: "name",
-					message: "Enter DApp name",
-					required: true,
-					validate: function (value) {
-						var done = this.async();
-
-						if (value.length == 0) {
-							done("DApp name is too short, minimum is 1 character");
-							return;
-						}
-
-						if (value.length > 32) {
-							done("DApp name is too long, maximum is 32 characters");
-							return;
-						}
-
-						return done(true)
-					}
-				},
-				{
-					type: "input",
-					name: "description",
-					message: "Enter DApp description",
-					validate: function (value) {
-						var done = this.async();
-
-						if (value.length > 160) {
-							done("DApp description is too long, maximum is 160 characters");
-							return;
-						}
-
-						return done(true);
-					}
-				},
-				{
-					type: "input",
-					name: "tags",
-					message: "Enter DApp tags",
-					validate: function (value) {
-						var done = this.async();
-
-						if (value.length > 160) {
-							done("DApp tags is too long, maximum is 160 characters");
-							return;
-						}
-
-						return done(true);
-					}
-				},
-				{
-					type: "rawlist",
-					name: "category",
-					required: true,
-					message: "Choose DApp category",
-					choices: dappCategories
-				},
-				{
-					type: "input",
-					name: "link",
-					message: "Enter DApp link",
-					required: true,
-					validate: function (value) {
-						var done = this.async();
-
-						if (!valid_url.isUri(value)) {
-							done("Invalid DApp link, must be a valid url");
-							return;
-						}
-						if (value.indexOf(".zip") != value.length - 4) {
-							done("Invalid DApp link, does not link to zip file");
-							return;
-						}
-						if (value.length > 160) {
-							return done("DApp link is too long, maximum is 160 characters");
-						}
-
-						return done(true);
-					}
-				},
-				{
-					type: "input",
-					name: "icon",
-					message: "Enter DApp icon url",
-					validate: function (value) {
-						var done = this.async();
-
-						if (!valid_url.isUri(value)) {
-							return done("Invalid DApp icon, must be a valid url");
-						}
-						var extname = path.extname(value);
-						if (['.png', '.jpg', '.jpeg'].indexOf(extname) == -1) {
-							return done("Invalid DApp icon file type");
-						}
-						if (value.length > 160) {
-							return done("DApp icon url is too long, maximum is 160 characters");
-						}
-
-						return done(true);
-					}
+		{
+			type: "input",
+			name: "unlockDelegates",
+			message: "How many delegates are needed to unlock asset of a dapp?",
+			validate: function (value) {
+				var done = this.async();
+				var n = Number(value);
+				if (!Number.isInteger(n) || n < 3 || n > 101) {
+					return done("Invalid unlockDelegates");
 				}
-			], function (result) {
-				if (!result.name || !result.link || !result.category) {
-					return next(new Error('invalid dapp params'));
-				}
-				dappParams = {
-					name: result.name,
-					link: result.link,
-					category: dappCategories.indexOf(result.category) + 1,
-					description: result.description || "",
-					tags: result.tags || "",
-					icon: result.icon || "",
-					type: 0
-				};
-				dappTrs = AschJS.dapp.createDapp(account.secret, secondSecret, dappParams);
-				console.log("Generate dapp transaction", dappTrs);
-				next();
-			});
-		},
-		function (next) {
-			inquirer.prompt([
-				{
-					type: "confirm",
-					name: "inbuiltAsset",
-					message: "Do you want publish a inbuilt asset in this dapp?",
-					default: false
-				}
-			], function (result) {
-				if (!result.inbuiltAsset) {
-					return next();
-				}
-				inquirer.prompt([
-					{
-						type: "input",
-						name: "assetName",
-						message: "Enter asset name, for example: BTC, CNY, USD, MYASSET",
-						default: ''
-					},
-					{
-						type: "input",
-						name: "assetAmount",
-						message: "Enter asset total amount",
-						default: 1000000
-					}
-				], function (result) {
-					if (!result.assetName || result.assetName === 'XAS') {
-						return next('invalid inbuilt asset name');
-					}
-					var assetAmount = Number(result.assetAmount);
-					if (!assetAmount || isNaN(assetAmount) || assetAmount < 0) {
-						return next('invalid inbuilt asset amount');
-					}
-					assetInfo = {
-						name: result.assetName,
-						amount: assetAmount
-					};
-					next();
-				});
-			});
-		},
-		function (next) {
-			inquirer.prompt([
-				{
-					type: "input",
-					name: "publicKeys",
-					message: "Enter public keys of dapp forgers - hex array, use ',' for separator",
-					default: account.keypair.publicKey,
-					validate: function (value) {
-						var done = this.async();
-
-						var publicKeys = value.split(",");
-
-						if (publicKeys.length == 0) {
-							done("DApp requires at least 1 public key");
-							return;
-						}
-
-						for (var i in publicKeys) {
-							try {
-								var b = new Buffer(publicKeys[i], "hex");
-								if (b.length != 32) {
-									done("Invalid public key: " + publicKeys[i]);
-									return;
-								}
-							} catch (e) {
-								done("Invalid hex for public key: " + publicKeys[i]);
-								return;
-							}
-						}
-						done(true);
-					}
-				}
-			], function (result) {
-				if (!result.publicKeys) {
-					return next("invalid dapp forger public keys");
-				}
-				console.log("Creating DApp genesis block");
-				dappBlock = dappHelper.new(account, result.publicKeys.split(","), assetInfo);
-				next();
-			});
-		},
-		function (next) {
-			console.log("Fetching Asch Dapps SDK");
-			fs.exists(dappsPath, function (exists) {
-				if (!exists) {
-					fs.mkdir(dappsPath, next);
-				} else {
-					next();
-				}
-			});
-		},
-		function (next) {
-			dappPath = path.join(dappsPath, dappTrs.id);
-			fsExtra.copy(templatePath, dappPath, { clobber: true }, next);
-		},
-		function (next) {
-			console.log("Saving genesis block");
-			var genesisBlockJson = JSON.stringify(dappBlock, null, 2);
-			fs.writeFile(path.join(dappPath, "genesis.json"), genesisBlockJson, "utf8", next);
-		},
-		function (next) {
-			console.log("Saving dapp meta information");
-			var dappParamsJson = JSON.stringify(dappParams, null, 2);
-			fs.writeFile(path.join(dappPath, "dapp.json"), dappParamsJson, "utf8", next);
-		},
-		function (next) {
-			console.log("Registering dapp in localnet");
-			var api = new Api({ port: 4096 });
-			api.broadcastTransaction(dappTrs, function (err) {
-				if (err) {
-					next("Failed to register dapp: " + err);
-				} else {
-					next();
-				}
-			});
+				done(null, true);
+			}
 		}
-	], function (err) {
-		if (err) {
-			console.log(err);
-		} else {
-			setTimeout(function () {
-				console.log("Done (DApp id is " + dappTrs.id + ")");
-			}, 10000);
-		}
-	});
+	])
+	var dappMetaInfo = {
+		name: answer.name,
+		link: answer.link,
+		category: dappCategories.indexOf(answer.category) + 1,
+		description: answer.description || "",
+		tags: answer.tags || "",
+		icon: answer.icon || "",
+		delegates: answer.delegates.split(","),
+		unlockDelegates: Number(answer.unlockDelegates),
+		type: 0
+	}
+	var dappMetaJson = JSON.stringify(dappMetaInfo, null, 2);
+	fs.writeFileSync("./dapp.json", dappMetaJson, "utf8");
+	console.log("DApp meta information is saved to ./dapp.json ...");
 }
 
-function changeDapp() {
-	inquirer.prompt([
-		{
-			type: "confirm",
-			name: "confirmed",
-			message: "Existing blockchain will be replaced, are you sure?",
-			default: false
-		}
-	], function (result) {
-		if (result.confirmed) {
-			inquirer.prompt([
-				{
-					type: "password",
-					name: "secret",
-					message: "Enter secret of your testnet account",
-					validate: function (value) {
-						var done = this.async();
-						if (!accountHelper.isValidSecret(value)) {
-							done("Secret is not validated by BIP39");
-							return;
-						}
-						done(true);
-					}
-				},
-				{
-					type: "input",
-					name: "dappId",
-					message: "Enter DApp id (folder name of dapp)",
-					required: true
-				},
-			], function (result) {
-				var account = accountHelper.account(result.secret);
-				var dappId = result.dappId;
-				var publicKeys = [];
-
-				var dappPath = path.join(".", "dapps", dappId);
-				var dappGenesis = JSON.parse(fs.readFileSync(path.join(dappPath, "genesis.json"), "utf8"));
-				inquirer.prompt([
-					{
-						type: "confirm",
-						name: "inbuiltAsset",
-						message: "Do you want publish a inbuilt asset in this dapp?",
-						default: false
-					}
-				], function (result) {
-					var assetInfo;
-					if (result.inbuiltAsset) {
-						inquirer.prompt([
-							{
-								type: "input",
-								name: "assetName",
-								message: "Enter asset name, for example: BTC, CNY, USD, MYASSET",
-								default: ''
-							},
-							{
-								type: "input",
-								name: "assetAmount",
-								message: "Enter asset total amount",
-								default: 1000000
-							}
-						], function (result) {
-							if (!result.assetName || result.assetName === 'XAS') {
-								return next('invalid inbuilt asset name');
-							}
-							var assetAmount = Number(result.assetAmount);
-							if (!assetAmount || isNaN(assetAmount) || assetAmount < 0) {
-								return next('invalid inbuilt asset amount');
-							}
-							assetInfo = {
-								name: result.assetName,
-								amount: assetAmount
-							};
-						});
-					}
-
-					inquirer.prompt([
-						{
-							type: "confirm",
-							name: "confirmed",
-							message: "Continue with exists forgers public keys",
-							required: true,
-						}], function (result) {
-							if (result.confirmed) {
-								publicKeys = dappGenesis.delegates;
-							}
-
-							inquirer.prompt([
-								{
-									type: "input",
-									name: "publicKeys",
-									message: "Enter public keys of dapp forgers - hex array, use ',' for separator",
-									default: account.keypair.publicKey,
-									validate: function (value) {
-										var done = this.async();
-
-										var publicKeys = value.split(",");
-
-										if (publicKeys.length == 0) {
-											done("DApp requires at least 1 public key");
-											return;
-										}
-
-										for (var i in publicKeys) {
-											try {
-												var b = new Buffer(publicKeys[i], "hex");
-												if (b.length != 32) {
-													done("Invalid public key: " + publicKeys[i]);
-													return;
-												}
-											} catch (e) {
-												done("Invalid hex for public key: " + publicKeys[i]);
-												return;
-											}
-										}
-
-										done(true);
-									}
-								}
-							], function (result) {
-								console.log("Creating DApp genesis block");
-
-								var dappBlock = dappHelper.new(account, result.publicKeys.split(","), assetInfo);
-								var dappGenesisBlockJson = JSON.stringify(dappBlock, null, 2);
-
-								try {
-									fs.writeFileSync(path.join(dappPath, "genesis.json"), dappGenesisBlockJson, "utf8");
-								} catch (e) {
-									return console.log(e);
-								}
-
-								console.log("Done");
-							});
-						});
-				});
-			});
-		}
-	});
+async function addDapp() {
+	await createDAppMetaFile()
 }
 
 function depositDapp() {
@@ -706,31 +468,6 @@ function installDapp() {
 		});
 }
 
-function assetNameValidator(input) {
-	let done = this.async()
-	if (!input || !/^[A-Z]{3,6}$/.test(input)) {
-		return done('Invalid currency symbol')
-	}
-	done(null, true)
-}
-
-function amountValidator(input) {
-	let done = this.async()
-	if (!/^[1-9][0-9]*$/.test(input)) {
-		return done('Amount should be integer')
-	}
-	done(null, true)
-}
-
-function precisionValidator(input) {
-	let done = this.async()
-	let precision = Number(input)
-	if (!Number.isInteger(precision) || precision < 0 || precision > 16) {
-		return done('Precision is between 0 and 16')
-	}
-	done(null, true)
-}
-
 async function createGenesisBlock() {
 	var genesisSecret = await prompt({
 		type: "password",
@@ -785,7 +522,6 @@ module.exports = function (program) {
 		.command("dapps")
 		.description("manage your dapps")
 		.option("-a, --add", "add new dapp")
-		.option("-c, --change", "change dapp genesis block")
 		.option("-d, --deposit", "deposit funds to dapp")
 		.option("-w, --withdrawal", "withdraw funds from dapp")
 		.option("-i, --install", "install dapp")
@@ -796,8 +532,6 @@ module.exports = function (program) {
 				try {
 					if (options.add) {
 						addDapp();
-					} else if (options.change) {
-						changeDapp();
 					} else if (options.deposit) {
 						depositDapp();
 					} else if (options.withdrawal) {
