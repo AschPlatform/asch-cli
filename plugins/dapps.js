@@ -5,7 +5,6 @@ var fs = require("fs");
 var async = require('async');
 var path = require("path");
 var rmdir = require("rmdir");
-var npm = require("npm");
 var request = require("request");
 var valid_url = require("valid-url");
 var fsExtra = require('fs-extra');
@@ -28,6 +27,23 @@ var dappCategories = [
 	"Utilities",
 	"Games"
 ];
+
+function bip39Validator(input) {
+	var done = this.async();
+
+	if (!accountHelper.isValidSecret(input)) {
+		done("Secret is not validated by BIP39");
+		return;
+	}
+
+	done(null, true);
+}
+
+async function prompt(question) {
+	let answer = await inquirer.prompt([question])
+	return answer[question.name]
+}
+
 function addDapp() {
 	var account;
 	var secondSecret;
@@ -686,23 +702,62 @@ function installDapp() {
 		});
 }
 
-function createGenesisBlock() {
-	var account = accountHelper.account('someone manual strong movie roof episode eight spatial brown soldier soup motor')
-	account.address = 'A8QCwz5Vs77UGX9YqBg9kJ6AZmsXQBC8vj'
-	var assetInfo = {
-		name: 'CNY',
-		amount: '1000000'
+function assetNameValidator(input) {
+	let done = this.async()
+	if (!inpunt || !/^[A-Z]{3,6}$/.test(input)) {
+		return done('Invalid currency symbol')
 	}
+	done(null, true)
+}
+
+function amountValidator(input) {
+	let done = this.async()
+	if (!/^[1-9][0-9]*$/.test(amount)) {
+		return done('Amount should be integer')
+	}
+	done(null, true)
+}
+
+async function createGenesisBlock() {
+	var genesisSecret = await prompt({
+		type: "password",
+		name: "genesisSecret",
+		message: "Enter master secret of your genesis account",
+		validate: bip39Validator
+	})
+
+	var wantInbuiltAsset = await inquirer.prompt({
+		type: "confirm",
+		name: "wantInbuiltAsset",
+		message: "Do you want publish a inbuilt asset in this dapp?",
+		default: false
+	})
+
+	var assetInfo = null
+	if (wantInbuiltAsset) {
+		var assetName = await inquirer.prompt({
+			type: "input",
+			name: "assetName",
+			message: "Enter asset name, for example: BTC, CNY, USD, MYASSET",
+			validate: assetNameValidator
+		})
+		var assetAmount = await inquirer.prompt({
+			type: "input",
+			name: "assetAmount",
+			message: "Enter asset total amount",
+			validate: amountValidator
+		})
+		assetInfo = {
+			name: assetName,
+			assetAmount: assetAmount
+		}
+	}
+
+	var account = accountHelper.account(genesisSecret)
 	var dappBlock = dappHelper.new(account, null, assetInfo);
 	var dappGenesisBlockJson = JSON.stringify(dappBlock, null, 2);
-
-	try {
-		fs.writeFileSync('genesis.json', dappGenesisBlockJson, "utf8");
-	} catch (e) {
-		return console.log(e);
-	}
-
-	console.log("Done");
+	fs.writeFileSync('genesis.json', dappGenesisBlockJson, "utf8");
+	console.log("New genesis block is created at: ./genesis.json");
 }
 
 module.exports = function (program) {
@@ -717,22 +772,28 @@ module.exports = function (program) {
 		.option("-u, --uninstall", "uninstall dapp")
 		.option("-g, --genesis", "create genesis block")
 		.action(function (options) {
-			if (options.add) {
-				addDapp();
-			} else if (options.change) {
-				changeDapp();
-			} else if (options.deposit) {
-				depositDapp();
-			} else if (options.withdrawal) {
-				withdrawalDapp();
-			} else if (options.install) {
-				installDapp();
-			} else if (options.uninstall) {
-				uninstallDapp();
-			} else if (options.genesis) {
-				createGenesisBlock()
-			} else {
-				console.log("'node dapps -h' to get help");
-			}
+			(async function () {
+				try {
+					if (options.add) {
+						addDapp();
+					} else if (options.change) {
+						changeDapp();
+					} else if (options.deposit) {
+						depositDapp();
+					} else if (options.withdrawal) {
+						withdrawalDapp();
+					} else if (options.install) {
+						installDapp();
+					} else if (options.uninstall) {
+						uninstallDapp();
+					} else if (options.genesis) {
+						createGenesisBlock()
+					} else {
+						console.log("'node dapps -h' to get help");
+					}
+				} catch (e) {
+					console.error(e)
+				}
+			})()
 		});
 }

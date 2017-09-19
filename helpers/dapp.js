@@ -59,32 +59,6 @@ module.exports = {
 			payloadLength: 0,
 			payloadHash: crypto.createHash('sha256')
 		}
-	
-		// var delegates = publicKeys.map(function (key) {
-		// 	return "+" + key;
-		// })
-		// var delegatesTransaction = {
-		// 	type: 2,
-		// 	amount: 0,
-		// 	fee: 0,
-		// 	timestamp: 0,
-		// 	recipientId: null,
-		// 	senderId: genesisAccount.address,
-		// 	senderPublicKey: genesisAccount.keypair.publicKey,
-		// 	asset: {
-		// 		delegates: {
-		// 			list: delegates
-		// 		}
-		// 	}
-		// }
-		// var bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
-		// delegatesTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
-		// bytes = dappTransactionsLib.getTransactionBytes(delegatesTransaction);
-		// delegatesTransaction.id = cryptoLib.getId(bytes);
-
-		// block.payloadLength += bytes.length;
-		// block.payloadHash.update(bytes);
-		// block.transactions.push(delegatesTransaction);
 
 		if (assetInfo) {
 			var assetTrs = {
