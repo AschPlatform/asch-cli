@@ -40,8 +40,12 @@ function bip39Validator(input) {
 }
 
 async function prompt(question) {
-	let answer = await inquirer.prompt([question])
-	return answer[question.name]
+	if (Array.isArray(question)) {
+		return await inquirer.prompt(question)
+	} else {
+		let answer = await inquirer.prompt([question])
+		return answer[question.name]
+	}
 }
 
 function addDapp() {
@@ -704,7 +708,7 @@ function installDapp() {
 
 function assetNameValidator(input) {
 	let done = this.async()
-	if (!inpunt || !/^[A-Z]{3,6}$/.test(input)) {
+	if (!input || !/^[A-Z]{3,6}$/.test(input)) {
 		return done('Invalid currency symbol')
 	}
 	done(null, true)
@@ -712,8 +716,17 @@ function assetNameValidator(input) {
 
 function amountValidator(input) {
 	let done = this.async()
-	if (!/^[1-9][0-9]*$/.test(amount)) {
+	if (!/^[1-9][0-9]*$/.test(input)) {
 		return done('Amount should be integer')
+	}
+	done(null, true)
+}
+
+function precisionValidator(input) {
+	let done = this.async()
+	let precision = Number(input)
+	if (!Number.isInteger(precision) || precision < 0 || precision > 16) {
+		return done('Precision is between 0 and 16')
 	}
 	done(null, true)
 }
@@ -735,21 +748,28 @@ async function createGenesisBlock() {
 
 	var assetInfo = null
 	if (wantInbuiltAsset) {
-		var assetName = await inquirer.prompt({
+		var name = await prompt({
 			type: "input",
 			name: "assetName",
 			message: "Enter asset name, for example: BTC, CNY, USD, MYASSET",
 			validate: assetNameValidator
 		})
-		var assetAmount = await inquirer.prompt({
+		var amount = await prompt({
 			type: "input",
 			name: "assetAmount",
 			message: "Enter asset total amount",
 			validate: amountValidator
 		})
+		var precision = await prompt({
+			type: "input",
+			name: "assetPrecison",
+			message: "Enter asset precision",
+			validate: precisionValidator
+		})
 		assetInfo = {
-			name: assetName,
-			assetAmount: assetAmount
+			name: name,
+			amount: amount,
+			precision: precision
 		}
 	}
 

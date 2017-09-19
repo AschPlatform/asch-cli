@@ -68,7 +68,7 @@ module.exports = {
 				type: 3,
 				args: JSON.stringify([
 					assetInfo.name,
-					String(assetInfo.amount * 100000000),
+					String(Number(assetInfo.amount) * Math.pow(10, assetInfo.precision)),
 					genesisAccount.address
 				])
 			}
