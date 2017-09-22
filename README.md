@@ -1,5 +1,5 @@
 [![Build Status](https://travis-ci.org/AschPlatform/asch-cli.png?branch=master)](https://travis-ci.org/AschPlatform/asch-cli)
-[![Author](https://img.shields.io/badge/author-@AschPlatform-blue.svg?style=flat)](http://github.com/AschPlatform) 
+[![Author](https://img.shields.io/badge/author-@AschPlatform-blue.svg?style=flat)](http://github.com/AschPlatform)
 [![License](https://img.shields.io/badge/license-MIT-yellow.svg?style=flat)](http://AschPlatform.mit-license.org)
 [![NpmDownload Status](http://img.shields.io/npm/dm/asch-cli.svg)](https://www.npmjs.org/package/asch-cli)
 [![NPM Version](https://img.shields.io/npm/v/asch-cli.svg?style=flat)](https://www.npmjs.org/package/asch-cli)
@@ -16,6 +16,13 @@ A command line interface for bootstrapping and managing [Asch](https://github.co
 
 ```
 npm install -g asch-cli
+```
+
+如在某些Linux发行版运行 asch-cli 报类似错“/usr/bin/env: ‘node’: No such file or directory”，即node版本过低或缺少node，可先执行：
+
+```
+npm install -g n
+n stable
 ```
 
 ## Usage
