@@ -11,6 +11,9 @@ A command line interface for bootstrapping and managing [Asch](https://github.co
 
 ## Installation
 
+由于依赖的inquirer模块在低版本node下存在bug
+最新的dapps系列子命令要求node版本号为v8.4.0以上
+
 ```
 npm install -g asch-cli
 ```

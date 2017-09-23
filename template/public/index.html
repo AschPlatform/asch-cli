@@ -4,46 +4,60 @@
 <head>
     <meta charset="UTF-8">
     <script src="http://lib.sinaapp.com/js/jquery/1.9.1/jquery-1.9.1.min.js"></script>
-    <title>Asch Dapp Hello World</title>
+    <title>Asch DApp Example 1 - hello world</title>
 </head>
 
 <script type="text/javascript">
     $(document).ready(function() {
         var DAPP_ID = window.location.pathname.split('/')[2];
-        var BASE_URL = '/api/dapps/' + DAPP_ID + '/api';
+        var BASE_URL = '/api/dapps/' + DAPP_ID;
+        var COUNT_PER_PAGE = 20;
         var State = {
-            isLogin: false
+            isLogin: false,
+            timer: null
         };
         var UserInfo = {
             secret: '',
         };
-
-        function refreshAccount(account) {
+        function updateBalanceView(balances) {
             var $table = $('#balanceTable');
             $table.find('tr:not(:first)').remove();
-            var $options = $('#assetOptions');
-            $options.html('');
-            for (var k in account.balance) {
-                var balance = Number(account.balance[k]) / 100000000;
-                var tr = '<tr><td>' + k + '</td>' + '<td>' + balance + '</td></tr>';
+            for (var i in balances) {
+                var balanceInfo = balances[i]
+                var balance = Number(balanceInfo.balance) / 100000000
+                var currency = balanceInfo.currency
+                var tr = '<tr><td>' + currency + '</td>' + '<td>' + balance + '</td></tr>';
                 $table.append(tr);
-                $options.append('<option value="' + k + '">' + k + '</option>');
             }
         }
-
+        function loadContracts() {
+            $.ajax({
+                type: 'GET',
+                url: BASE_URL + '/contracts',
+                dataType: 'json',
+                success: function (ret) {
+                    console.log(ret)
+                    var $contractOptions = $('#contractOptions')
+                    $contractOptions.empty()
+                    for (var i in ret.contracts) {
+                        var c = ret.contracts[i]
+                        $contractOptions.append('<option value="' + c.type + '">' + c.type + ': ' + c.name + '</option>')
+                    }
+                }
+            })
+        }
         function onLogin(account) {
             State.isLogin = true;
-            $('#loginBtn').val('退出');
+            $('#loginBtn').val('Logout');
             $('#secretInput').hide();
-
             $('#mainPanel').show();
-            refreshAccount(account);
+            updateBalanceView(account.balances);
+            loadContracts()
         }
-
         function login(secret) {
             $.ajax({
                 type: 'POST',
-                url: BASE_URL + '/openAccount',
+                url: BASE_URL + '/login',
                 data: {
                     secret: secret
                 },
@@ -55,63 +69,43 @@
                         return;
                     }
                     UserInfo.secret = secret;
+                    UserInfo.publicKey = ret.account.publicKey;
+                    UserInfo.address = ret.account.address
                     onLogin(ret.account);
                 }
             });
         }
-
+        function getBalances(address) {
+            $.ajax({
+                type: 'GET',
+                url: BASE_URL + '/balances/' + address,
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert(ret.error);
+                        return;
+                    }
+                    updateBalanceView(ret.balances)
+                }
+            });
+        }
         function logout() {
-            $('#loginBtn').val('登录');
+            $('#loginBtn').val('login');
             $('#secretInput').show();
             $('#mainPanel').hide();
             State.isLogin = false;
+            if (State.timer) {
+                clearInterval(State.timer);
+                State.timer = null;
+            }
         }
 
-        function withdrawal(secret, amount) {
-            $.ajax({
-                type: 'POST',
-                url: BASE_URL + '/withdrawal',
-                data: {
-                    secret: secret,
-                    amount: amount
-                },
-                dataType: 'json',
-                success: function(ret) {
-                    console.log(ret);
-                    if (!ret.success) {
-                        alert(ret.error);
-                        return;
-                    }
-                    $('#withdrawalAmountinput').val('');
-                    setTimeout(login.bind(null, secret), 1000 * 10);
-                }
-            });
-        }
-
-        function transfer(secret, asset, amount, address) {
-            $.ajax({
-                type: 'PUT',
-                url: BASE_URL + '/transaction',
-                data: {
-                    secret: secret,
-                    amount: amount,
-                    token: asset,
-                    recipientId: address
-                },
-                dataType: 'json',
-                success: function(ret) {
-                    console.log(ret);
-                    if (!ret.success) {
-                        alert(ret.error);
-                        return;
-                    }
-                    $('#transferAmount').val('');
-                    $('#transferAddress').val('');
-                    setTimeout(login.bind(null, secret), 1000 * 10);
-                }
-            });
-        }
-
+        State.timer = setInterval(function () {
+            if (UserInfo.publicKey) {
+                getBalances(UserInfo.address);
+            }
+        }, 10 * 1000);
         $('#loginBtn').click(function () {
             if (State.isLogin) {
                 logout();
@@ -119,61 +113,88 @@
                 login($('#secretInput').val());
             }
         });
-
-        $('#withdrawalBtn').click(function () {
-            var amount = Number($('#withdrawalAmountinput').val());
-            if (amount <= 0 || isNaN(amount)) {
-                return alert('金额输入不正确!');
+        $('#invokeBtn').click(function () {
+            var args = $('#contractArgs').val().split('\n')
+            var fee = '10000000'
+            var data = {
+                secret: UserInfo.secret,
+                fee: fee,
+                type: Number($('#contractOptions').val()),
+                args: JSON.stringify(args)
             }
-            var realAmount = parseFloat((amount * 100000000).toFixed(0));
-            withdrawal(UserInfo.secret, realAmount);
-        });
-
-        $('#transferBtn').click(function () {
-            var assetName = $('#assetOptions').val();
-            var amount = Number($('#transferAmount').val());
-            var address = $('#transferAddress').val();
-            if (!assetName || isNaN(amount) || amount <= 0 || !address) {
-                return alert('您输入的参数不正确!');
+            console.log('invoke', data)
+            $.ajax({
+                type: 'PUT',
+                url: BASE_URL + '/transactions/unsigned',
+                data: data,
+                dataType: 'json',
+                success: function(ret) {
+                    console.log(ret);
+                    if (!ret.success) {
+                        alert('Error: ' + ret.error);
+                        return;
+                    }
+                    alert("Success! " + ret.transactionId);
+                }
+            });
+        })
+        $('#accessBtn').click(function () {
+            var params = $('#accessParams').val()
+            var jsonParams = null
+            try {
+                if (params) {
+                    var jsonParams = JSON.parse(params)
+                }
+            } catch (e) {
+                alert('Invalid params')
+                return
             }
-            var realAmount = parseFloat((amount * 100000000).toFixed(0));
-            transfer(UserInfo.secret, assetName, realAmount, address);
-        });
+
+            $.ajax({
+                type: 'GET',
+                url: BASE_URL + $('#accessUrl').val(),
+                data: jsonParams,
+                dataType: 'json',
+                success: function (ret) {
+                    console.log(ret)
+                    $('#accessResponse').val(JSON.stringify(ret, null, 4));
+                }
+            })
+        })
     });
 </script>
 
 <body>
-    <h1>Asch Dapp Hello World</h1>
+    <h1>Asch DApp Example 1 - hello world</h1>
     <div>
-        <input type="password" id="secretInput" placeholder="请输入主密码">
-        <input type="button" value="登录" id="loginBtn">
+        <input type="password" id="secretInput" placeholder="Please input master secret">
+        <input type="button" value="Login" id="loginBtn">
     </div>
     <div id="mainPanel" style="display: none;">
         <hr/>
-        <h2>账户资产</h2>
+        <h2>Account balances</h2>
         <div>
             <table id="balanceTable" width="200px" border="1">
                 <tr>
-                    <th>资产</th>
-                    <th>余额</th>
+                    <th>Currency</th>
+                    <th>Balance</th>
                 </tr>
             </table>
         </div>
 
         <hr/>
-        <h2>XAS提现</h2>
+        <h2>Contract invoke</h2>
         <div>
-            <input type="text" id="withdrawalAmountinput" placeholder="请输入提现金额, 仅限XAS">
-            <input type="button" value="提现" id="withdrawalBtn">
+            <select id="contractOptions"></select><input type="button" id="invokeBtn" value="Invoke"><br/>
+            <textarea rows="6" cols="60" id="contractArgs" placeholder="Please input the arguments"></textarea><br/>
         </div>
 
         <hr/>
-        <h2>链内转账</h2>
+        <h2>Interface access</h2>
         <div>
-            <select id="assetOptions"></select>
-            <input type="text" id="transferAmount" placeholder="请输入转账金额">
-            <input type="text" id="transferAddress" placeholder="请输入转账地址">
-            <input type="button" id="transferBtn" value="转账">
+            <input type="text" id="accessUrl" placeholder="Please input url"><input type="button" id="accessBtn" value="Access"><br/>
+            <textarea rows="10" cols="60" id="accessParams" placeholder="Please input params"></textarea><br/>
+            <textarea rows="20" cols="60" id="accessResponse"></textarea><br/>
         </div>
     </div>
 </body>
