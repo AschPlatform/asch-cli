@@ -90,7 +90,6 @@ async function createDAppMetaFile() {
 					done("DApp name is too long, maximum is 32 characters");
 					return;
 				}
-
 				return done(null, true)
 			}
 		},
