@@ -91,19 +91,6 @@ async function createDAppMetaFile() {
 					return;
 				}
 
-				dappParams = {
-					name: result.name,
-					link: result.link,
-					category: dappCategories.indexOf(result.category) + 1,
-					description: result.description || "",
-					tags: result.tags || "",
-					icon: result.icon || "",
-					type: 0
-				};
-				dappTrs = AschJS.dapp.createDApp(dappParams, account.secret, secondSecret);
-				console.log("Generate dapp transaction", dappTrs);
-				next();
-			});
 				return done(null, true)
 			}
 		},
