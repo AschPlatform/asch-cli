@@ -237,15 +237,13 @@ async function addDapp() {
 	await createDAppMetaFile()
 }
 
-function depositDapp() {
-	inquirer.prompt([
+async function depositDapp() {
+	let result = await inquirer.prompt([
 		{
 			type: "password",
 			name: "secret",
 			message: "Enter secret",
-			validate: function (value) {
-				return value.length > 0 && value.length < 100;
-			},
+		    validate: bip39Validator,
 			required: true
 		},
 		{
@@ -267,63 +265,62 @@ function depositDapp() {
 			type: "input",
 			name: "secondSecret",
 			message: "Enter secondary secret (if defined)",
-			validate: function (value) {
-				return value.length < 100;
+			validate: function(message) {
+			    return message.length < 100;
 			},
 			required: false
 		}
-	], function (result) {
-		var realAmount = parseFloat((parseInt(result.amount) * 100000000).toFixed(0));
-		var body = {
-			secret: result.secret,
-			dappId: result.dappId,
-			amount: realAmount
-		};
+	]);
 
-		if (result.secondSecret && result.secondSecret.length > 0) {
-			body.secondSecret = result.secondSecret;
+
+	var realAmount = parseFloat((parseInt(result.amount) * 100000000).toFixed(0));
+	var body = {
+		secret: result.secret,
+		dappId: result.dappId,
+		amount: realAmount
+	};
+
+	if (result.secondSecret && result.secondSecret.length > 0) {
+		body.secondSecret = result.secondSecret;
+	}
+
+	let hostResult = await inquirer.prompt([
+		{
+			type: "input",
+			name: "host",
+			message: "Host and port",
+			default: "localhost:4096",
+			required: true
+		}
+	]);
+
+	request({
+		url: "http://" + hostResult.host + "/api/dapps/transaction",
+		method: "put",
+		json: true,
+		body: body
+	}, function (err, resp, body) {
+
+		if (err) {
+			return console.log(err.toString());
 		}
 
-		inquirer.prompt([
-			{
-				type: "input",
-				name: "host",
-				message: "Host and port",
-				default: "localhost:4096",
-				required: true
-			}
-		], function (result) {
-			request({
-				url: "http://" + result.host + "/api/dapps/transaction",
-				method: "put",
-				json: true,
-				body: body
-			}, function (err, resp, body) {
-				console.log(err, body);
-				if (err) {
-					return console.log(err.toString());
-				}
-
-				if (body.success) {
-					console.log(body.transactionId);
-					return;
-				} else {
-					return console.log(body.error);
-				}
-			});
-		});
+		if (body.success) {
+			console.log(body.transactionId);
+			return;
+		} else {
+			return console.log(body.error);
+		}
 	});
 }
 
-function withdrawalDapp() {
-	inquirer.prompt([
+async function withdrawalDapp() {
+	let result = await inquirer.prompt([
 		{
 			type: "password",
 			name: "secret",
 			message: "Enter secret",
-			validate: function (value) {
-				return value.length > 0 && value.length < 100;
-			},
+			validate: bip39Validator,
 			required: true
 		},
 		{
@@ -344,34 +341,33 @@ function withdrawalDapp() {
 				return isAddress.test(value);
 			},
 			required: true
-		}], function (result) {
+		}]);
 
-			var body = {
-				secret: result.secret,
-				amount: Number(result.amount)
-			};
+		var body = {
+			secret: result.secret,
+			amount: Number(result.amount)
+		};
 
-			request({
-				url: "http://localhost:4096/api/dapps/" + result.dappId + "/api/withdrawal",
-				method: "post",
-				json: true,
-				body: body
-			}, function (err, resp, body) {
-				if (err) {
-					return console.log(err.toString());
-				}
+		request({
+			url: "http://localhost:4096/api/dapps/" + result.dappId + "/api/withdrawal",
+			method: "post",
+			json: true,
+			body: body
+		}, function (err, resp, body) {
+			if (err) {
+				return console.log(err.toString());
+			}
 
-				if (body.success) {
-					console.log(body.transactionId);
-				} else {
-					return console.log(body.error);
-				}
-			});
+			if (body.success) {
+				console.log(body.transactionId);
+			} else {
+				return console.log(body.error);
+			}
 		});
 }
 
-function uninstallDapp() {
-	inquirer.prompt([
+async function uninstallDapp() {
+	let result = await inquirer.prompt([
 		{
 			type: "input",
 			name: "dappId",
@@ -393,34 +389,33 @@ function uninstallDapp() {
 			name: "masterpassword",
 			message: "Enter dapp master password",
 			required: true
-		}], function (result) {
+		}]);
+		
+		var body = {
+			id: String(result.dappId),
+			master: String(result.masterpassword)
+		};
 
-			var body = {
-				id: String(result.dappId),
-				master: String(result.masterpassword)
-			};
+		request({
+			url: "http://" + result.host + "/api/dapps/uninstall",
+			method: "post",
+			json: true,
+			body: body
+		}, function (err, resp, body) {
+			if (err) {
+				return console.log(err.toString());
+			}
 
-			request({
-				url: "http://" + result.host + "/api/dapps/uninstall",
-				method: "post",
-				json: true,
-				body: body
-			}, function (err, resp, body) {
-				if (err) {
-					return console.log(err.toString());
-				}
-
-				if (body.success) {
-					console.log("Done!");
-				} else {
-					return console.log(body.error);
-				}
-			});
+			if (body.success) {
+				console.log("Done!");
+			} else {
+				return console.log(body.error);
+			}
 		});
 }
 
-function installDapp() {
-	inquirer.prompt([
+async function installDapp() {
+	let result = await inquirer.prompt([
 		{
 			type: "input",
 			name: "dappId",
@@ -438,33 +433,32 @@ function installDapp() {
 			required: true
 		},
 		{
-			type: "password",
+			type: "input",
 			name: "masterpassword",
 			message: "Enter dapp master password",
 			required: true
-		}], function (result) {
+		}]);
 
-			var body = {
-				id: String(result.dappId),
-				master: String(result.masterpassword)
-			};
+		var body = {
+			id: String(result.dappId),
+			master: String(result.masterpassword)
+		};
 
-			request({
-				url: "http://" + result.host + "/api/dapps/install",
-				method: "post",
-				json: true,
-				body: body
-			}, function (err, resp, body) {
-				if (err) {
-					return console.log(err.toString());
-				}
+		request({
+			url: "http://" + result.host + "/api/dapps/install",
+			method: "post",
+			json: true,
+			body: body
+		}, function (err, resp, body) {
+			if (err) {
+				return console.log(err.toString());
+			}
 
-				if (body.success) {
-					console.log("Done!", body.path);
-				} else {
-					return console.log(body.error);
-				}
-			});
+			if (body.success) {
+				console.log("Done!", body.path);
+			} else {
+				return console.log(body.error);
+			}
 		});
 }
 
