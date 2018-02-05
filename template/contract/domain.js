@@ -6,7 +6,7 @@ module.exports = {
     app.sdb.create('Domain', {
       address: address,
       owner: this.trs.senderId,
-      suffix: this.address.split('.').pop()
+      suffix: address.split('.').pop()
     })
   },
   set_ip: async function(address, ip) {
