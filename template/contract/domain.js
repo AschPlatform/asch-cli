@@ -1,18 +1,18 @@
 module.exports = {
-  register: async function(address) {
-    app.sdb.lock('domain.register@' + address)
-    let exists = await app.model.Domain.exists({address: address})
-    if (exists) return 'Address already registered'
+  register: async function(domain) {
+    app.sdb.lock('domain.register@' + domain)
+    let exists = await app.model.Domain.exists({ domain })
+    if (exists) return 'Domain already registered'
     app.sdb.create('Domain', {
-      address: address,
+      domain,
       owner: this.trs.senderId,
-      suffix: address.split('.').pop()
+      suffix: domain.split('.').pop()
     })
   },
-  set_ip: async function(address, ip) {
-    app.sdb.lock('domain.register@' + address)
-    let exists = await app.model.Domain.exists({address: address})
-    if (!exists) return 'Address not exists' 
-    app.sdb.update('Domain', { ip: ip }, { address: address })
+  set_ip: async function(domain, ip) {
+    app.sdb.lock('domain.register@' + domain)
+    let exists = await app.model.Domain.exists({ domain })
+    if (!exists) return 'Domain not exists'
+    app.sdb.update('Domain', { ip }, { domain })
   }
 }

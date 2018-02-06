@@ -2,7 +2,7 @@ module.exports = {
   name: 'domains',
   fields: [
     {
-      name: 'address',
+      name: 'domain',
       type: 'String',
       length: 256,
       not_null: true,
