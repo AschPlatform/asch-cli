@@ -484,7 +484,7 @@ async function createGenesisBlock() {
 	})
 
 	var assetInfo = null
-	if (wantInbuiltAsset) {
+	if (wantInbuiltAsset.wantInbuiltAsset) {
 		var name = await prompt({
 			type: "input",
 			name: "assetName",
