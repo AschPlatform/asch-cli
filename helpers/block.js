@@ -13,6 +13,8 @@ function getBytes(block, skipSignature) {
 	var bb = new ByteBuffer(size, true);
 	bb.writeInt(block.version);
 	bb.writeInt(block.timestamp);
+	bb.writeLong(block.height);
+	bb.writeString(block.delegate)
 
 	if (block.previousBlock) {
 		bb.writeString(block.previousBlock)
@@ -20,27 +22,16 @@ function getBytes(block, skipSignature) {
 		bb.writeString('0')
 	}
 
-	bb.writeInt(block.numberOfTransactions);
-	bb.writeLong(block.totalAmount);
-	bb.writeLong(block.totalFee);
-	bb.writeLong(block.reward);
-
-	bb.writeInt(block.payloadLength);
-
 	var payloadHashBuffer = new Buffer(block.payloadHash, 'hex');
 	for (var i = 0; i < payloadHashBuffer.length; i++) {
 		bb.writeByte(payloadHashBuffer[i]);
 	}
 
-	var generatorPublicKeyBuffer = new Buffer(block.generatorPublicKey, 'hex');
-	for (var i = 0; i < generatorPublicKeyBuffer.length; i++) {
-		bb.writeByte(generatorPublicKeyBuffer[i]);
-	}
 
-	if (!skipSignature && block.blockSignature) {
-		var blockSignatureBuffer = new Buffer(block.blockSignature, 'hex');
-		for (var i = 0; i < blockSignatureBuffer.length; i++) {
-			bb.writeByte(blockSignatureBuffer[i]);
+	if (!skipSignature && block.signature) {
+		var signatureBuffer = new Buffer(block.signature, 'hex');
+		for (var i = 0; i < signatureBuffer.length; i++) {
+			bb.writeByte(signatureBuffer[i]);
 		}
 	}
 
@@ -48,6 +39,14 @@ function getBytes(block, skipSignature) {
 	var b = bb.toBuffer();
 
 	return b;
+}
+
+function signTransaction(trs, keypair) {
+	let bytes = transactionsLib.getTransactionBytes(trs)
+	trs.signatures.push(cryptoLib.sign(sender.keypair, bytes))
+	bytes = transactionsLib.getTransactionBytes(trs)
+	trs.id = cryptoLib.getId(bytes)
+	return trs
 }
 
 module.exports = {
@@ -68,140 +67,100 @@ module.exports = {
 					console.error('Invalid recipient balance format');
 					process.exit(1);
 				}
+				var amount = String(Number(parts[1]) * 100000000)
 				var trs = {
 					type: 0,
-					amount: Number(parts[1]) * 100000000,
 					fee: 0,
 					timestamp: 0,
-					recipientId: parts[0],
-					senderId: sender.address,
-					senderPublicKey: sender.keypair.publicKey
+					// senderId: sender.address,
+					senderPublicKey: sender.keypair.publicKey,
+					signatures: [],
+					message: '',
+					args: ['XAS', amount, parts[0]]
 				};
-				totalAmount += trs.amount;
 
-				var bytes = transactionsLib.getTransactionBytes(trs);
-				trs.signature = cryptoLib.sign(sender.keypair, bytes);
-				bytes = transactionsLib.getTransactionBytes(trs);
-				trs.id = cryptoLib.getId(bytes);
-
-				transactions.push(trs);
+				transactions.push(signTransaction(trs, sender.keypair));
 			}
 		} else {
 			var balanceTransaction = {
 				type: 0,
-				amount: 10000000000000000,
 				fee: 0,
 				timestamp: 0,
 				recipientId: genesisAccount.address,
-				senderId: sender.address,
-				senderPublicKey: sender.keypair.publicKey
+				// senderId: sender.address,
+				senderPublicKey: sender.keypair.publicKey,
+				signatures: [],
+				message: '',
+				args: ['XAS', '10000000000000000', genesisAccount.address]
 			};
 
-			totalAmount += balanceTransaction.amount;
-
-			var bytes = transactionsLib.getTransactionBytes(balanceTransaction);
-			balanceTransaction.signature = cryptoLib.sign(sender.keypair, bytes);
-			bytes = transactionsLib.getTransactionBytes(balanceTransaction);
-			balanceTransaction.id = cryptoLib.getId(bytes);
-
-			transactions.push(balanceTransaction);
+			transactions.push(signTransaction(balanceTransaction, sender.keypair));
 		}
 
 		// make delegates
 		for (var i = 0; i < 101; i++) {
 			var delegate = accounts.account(cryptoLib.generateSecret());
-			delegates.push(delegate);
 
 			var username = "asch_g" + (i + 1);
+			delegate.name = username
+			delegates.push(delegate);
 
-			var transaction = {
-				type: 2,
-				amount: 0,
+			var nameTrs = {
+				type: 4,
 				fee: 0,
 				timestamp: 0,
-				recipientId: null,
-				senderId: delegate.address,
 				senderPublicKey: delegate.keypair.publicKey,
-				asset: {
-					delegate: {
-						username: username
-					}
-				}
+				signatures: [],
+				args: [username],
+				message: ''
+			}
+			var delegateTrs = {
+				type: 2,
+				fee: 0,
+				timestamp: 0,
+				// senderId: delegate.address,
+				senderPublicKey: delegate.keypair.publicKey,
+				signatures: [],
+				args: [],
+				message: ''
 			}
 
-			bytes = transactionsLib.getTransactionBytes(transaction);
-			transaction.signature = cryptoLib.sign(sender.keypair, bytes);
-			bytes = transactionsLib.getTransactionBytes(transaction);
-			transaction.id = cryptoLib.getId(bytes);
-
-			transactions.push(transaction);
+			transactions.push(signTransaction(nameTrs, delegate.keypair));
+			transactions.push(signTransaction(delegateTrs, delegate.keypair));
 		}
 
 		// make votes
-		var votes = delegates.map(function (delegate) {
-			return "+" + delegate.keypair.publicKey;
+		var delegateNames = delegates.map(function (delegate) {
+			return delegate.name;
 		});
 
 		var voteTransaction = {
 			type: 3,
-			amount: 0,
 			fee: 0,
 			timestamp: 0,
-			recipientId: null,
-			senderId: genesisAccount.address,
 			senderPublicKey: genesisAccount.keypair.publicKey,
-			asset: {
-				vote: {
-					votes: votes
-				}
-			}
+			signatures: [],
+			args: [delegateNames.join(',')],
+			message: ''
 		}
 
-		bytes = transactionsLib.getTransactionBytes(voteTransaction);
-		voteTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
-		bytes = transactionsLib.getTransactionBytes(voteTransaction);
-		voteTransaction.id = cryptoLib.getId(bytes);
+		transactions.push(signTransaction(voteTransaction, genesisAccount.keypair));
 
-		transactions.push(voteTransaction);
-
-		var dappTransaction = null;
-		if (dapp) {
-			dappTransaction = {
-				type: 5,
-				amount: 0,
-				fee: 0,
-				timestamp: 0,
-				recipientId: null,
-				senderId: genesisAccount.address,
-				senderPublicKey: genesisAccount.keypair.publicKey,
-				asset: {
-					dapp: dapp
-				}
-			};
-
-			bytes = transactionsLib.getTransactionBytes(dappTransaction);
-			dappTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes);
-			bytes = transactionsLib.getTransactionBytes(dappTransaction);
-			dappTransaction.id = cryptoLib.getId(bytes);
-
-			transactions.push(dappTransaction);
-		}
-
-		transactions = transactions.sort(function compare(a, b) {
-			if (a.type != b.type) {
-        if (a.type == 1) {
-          return 1;
-        }
-        if (b.type == 1) {
-          return -1;
-        }
-        return a.type - b.type;
-      }
-      if (a.amount != b.amount) {
-        return a.amount - b.amount;
-      }
-      return a.id.localeCompare(b.id);
-		});
+		// transactions = transactions.sort(function compare(a, b) {
+		// 	if (a.type != b.type) {
+		// 		if (a.type == 1) {
+		// 			return 1;
+		// 		}
+		// 		if (b.type == 1) {
+		// 			return -1;
+		// 		}
+		// 		return a.type - b.type;
+		// 	}
+		// 	if (a.amount != b.amount) {
+		// 		return a.amount - b.amount;
+		// 	}
+		// 	return a.id.localeCompare(b.id);
+		// });
 
 		transactions.forEach(function (tx) {
 			bytes = transactionsLib.getTransactionBytes(tx);
@@ -213,27 +172,21 @@ module.exports = {
 
 		var block = {
 			version: 0,
-			totalAmount: totalAmount,
-			totalFee: 0,
-			reward: 0,
 			payloadHash: payloadHash.toString('hex'),
 			timestamp: 0,
-			numberOfTransactions: transactions.length,
-			payloadLength: payloadLength,
 			previousBlock: null,
-			generatorPublicKey: sender.keypair.publicKey,
+			delegate: sender.keypair.publicKey,
 			transactions: transactions,
 			height: 1
 		};
 
 		bytes = getBytes(block);
-		block.blockSignature = cryptoLib.sign(sender.keypair, bytes);
+		block.signature = cryptoLib.sign(sender.keypair, bytes);
 		bytes = getBytes(block);
 		block.id = cryptoLib.getId(bytes);
 
 		return {
 			block: block,
-			dapp: dappTransaction,
 			delegates: delegates
 		};
 	},
