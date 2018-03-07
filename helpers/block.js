@@ -177,7 +177,7 @@ module.exports = {
 			previousBlock: null,
 			delegate: sender.keypair.publicKey,
 			transactions: transactions,
-			height: 1
+			height: 0
 		};
 
 		bytes = getBytes(block);
