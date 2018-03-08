@@ -69,7 +69,7 @@ module.exports = {
 				}
 				var amount = String(Number(parts[1]) * 100000000)
 				var trs = {
-					type: 0,
+					type: 1,
 					fee: 0,
 					timestamp: 0,
 					// senderId: sender.address,
@@ -83,7 +83,7 @@ module.exports = {
 			}
 		} else {
 			var balanceTransaction = {
-				type: 0,
+				type: 1,
 				fee: 0,
 				timestamp: 0,
 				recipientId: genesisAccount.address,
@@ -106,7 +106,7 @@ module.exports = {
 			delegates.push(delegate);
 
 			var nameTrs = {
-				type: 4,
+				type: 2,
 				fee: 0,
 				timestamp: 0,
 				senderPublicKey: delegate.keypair.publicKey,
@@ -115,7 +115,7 @@ module.exports = {
 				message: ''
 			}
 			var delegateTrs = {
-				type: 2,
+				type: 10,
 				fee: 0,
 				timestamp: 0,
 				// senderId: delegate.address,
@@ -135,7 +135,7 @@ module.exports = {
 		});
 
 		var voteTransaction = {
-			type: 3,
+			type: 11,
 			fee: 0,
 			timestamp: 0,
 			senderPublicKey: genesisAccount.keypair.publicKey,
