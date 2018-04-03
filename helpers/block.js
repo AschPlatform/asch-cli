@@ -14,7 +14,9 @@ function getBytes(block, skipSignature) {
 	bb.writeInt(block.version);
 	bb.writeInt(block.timestamp);
 	bb.writeLong(block.height);
-	bb.writeString(block.delegate)
+	bb.writeInt(block.count);
+	bb.writeLong(block.fees);
+	bb.writeString(block.delegate);
 
 	if (block.previousBlock) {
 		bb.writeString(block.previousBlock)
@@ -76,7 +78,7 @@ module.exports = {
 					senderPublicKey: sender.keypair.publicKey,
 					signatures: [],
 					message: '',
-					args: ['XAS', amount, parts[0]]
+					args: [Number(amount), parts[0]]
 				};
 
 				transactions.push(signTransaction(trs, sender.keypair));
@@ -86,12 +88,11 @@ module.exports = {
 				type: 1,
 				fee: 0,
 				timestamp: 0,
-				recipientId: genesisAccount.address,
 				// senderId: sender.address,
 				senderPublicKey: sender.keypair.publicKey,
 				signatures: [],
 				message: '',
-				args: ['XAS', '10000000000000000', genesisAccount.address]
+				args: [10000000000000000, genesisAccount.address]
 			};
 
 			transactions.push(signTransaction(balanceTransaction, sender.keypair));
@@ -121,7 +122,6 @@ module.exports = {
 				// senderId: delegate.address,
 				senderPublicKey: delegate.keypair.publicKey,
 				signatures: [],
-				args: [],
 				message: ''
 			}
 
@@ -144,7 +144,7 @@ module.exports = {
 			message: ''
 		}
 
-		transactions.push(signTransaction(voteTransaction, genesisAccount.keypair));
+		// transactions.push(signTransaction(voteTransaction, genesisAccount.keypair));
 
 		// transactions = transactions.sort(function compare(a, b) {
 		// 	if (a.type != b.type) {
@@ -177,7 +177,9 @@ module.exports = {
 			previousBlock: null,
 			delegate: sender.keypair.publicKey,
 			transactions: transactions,
-			height: 0
+			height: 0,
+			count: transactions.length,
+			fees: 0
 		};
 
 		bytes = getBytes(block);
@@ -215,7 +217,6 @@ module.exports = {
 			amount: 0,
 			fee: 0,
 			timestamp: 0,
-			recipientId: null,
 			senderId: genesisAccount.address,
 			senderPublicKey: genesisAccount.keypair.publicKey,
 			asset: {
