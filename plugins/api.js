@@ -303,13 +303,26 @@ function setSecondSecret(options) {
   });
 }
 
-function registerDapp(options) {
+function registerChain(options) {
   if (!options.metafile || !fs.existsSync(options.metafile)) {
     console.error("Error: invalid params, dapp meta file must exists");
     return;
   }
   var dapp = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
-  var trs = aschJS.dapp.createDApp(dapp, options.secret, options.secondSecret);
+  var trs = aschJS.transaction.createTransactionEx({
+    type: 200,
+    fee: 100 * 100000000,
+    secret: options.secret,
+    secondSecret: options.secondSecret,
+    args: [
+      dapp.name,
+      dapp.desc,
+      dapp.link,
+      dapp.icon,
+      dapp.delegates,
+      dapp.unlockDelegates,
+    ]
+  });
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -326,7 +339,7 @@ function dappTransaction(options) {
   var trs = aschJS.dapp.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
-    args: options.args
+    args: JSON.parse(options.args)
   }, options.secret)
   getApi().put('/api/dapps/' + options.dapp + '/transactions/signed', { transaction: trs }, function (err, result) {
     console.log(err || result.transactionId)
@@ -615,12 +628,12 @@ module.exports = function(program) {
     .action(setSecondSecret);
     
   program
-    .command("registerdapp")
-    .description("register a dapp")
+    .command("registerchain")
+    .description("register a sidechain")
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
     .option("-f, --metafile <metafile>", "dapp meta file")
-    .action(registerDapp);
+    .action(registerChain);
   
   program
     .command("deposit")
