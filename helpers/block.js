@@ -74,7 +74,7 @@ module.exports = {
 					type: 1,
 					fee: 0,
 					timestamp: 0,
-					// senderId: sender.address,
+					senderId: sender.address,
 					senderPublicKey: sender.keypair.publicKey,
 					signatures: [],
 					message: '',
@@ -88,7 +88,7 @@ module.exports = {
 				type: 1,
 				fee: 0,
 				timestamp: 0,
-				// senderId: sender.address,
+				senderId: sender.address,
 				senderPublicKey: sender.keypair.publicKey,
 				signatures: [],
 				message: '',
@@ -110,6 +110,7 @@ module.exports = {
 				type: 2,
 				fee: 0,
 				timestamp: 0,
+				senderId: delegate.address,
 				senderPublicKey: delegate.keypair.publicKey,
 				signatures: [],
 				args: [username],
@@ -119,7 +120,7 @@ module.exports = {
 				type: 10,
 				fee: 0,
 				timestamp: 0,
-				// senderId: delegate.address,
+				senderId: delegate.address,
 				senderPublicKey: delegate.keypair.publicKey,
 				signatures: [],
 				message: ''
@@ -138,29 +139,12 @@ module.exports = {
 			type: 11,
 			fee: 0,
 			timestamp: 0,
+			senderId: genesisAccount.address,
 			senderPublicKey: genesisAccount.keypair.publicKey,
 			signatures: [],
 			args: [delegateNames.join(',')],
 			message: ''
 		}
-
-		// transactions.push(signTransaction(voteTransaction, genesisAccount.keypair));
-
-		// transactions = transactions.sort(function compare(a, b) {
-		// 	if (a.type != b.type) {
-		// 		if (a.type == 1) {
-		// 			return 1;
-		// 		}
-		// 		if (b.type == 1) {
-		// 			return -1;
-		// 		}
-		// 		return a.type - b.type;
-		// 	}
-		// 	if (a.amount != b.amount) {
-		// 		return a.amount - b.amount;
-		// 	}
-		// 	return a.id.localeCompare(b.id);
-		// });
 
 		transactions.forEach(function (tx) {
 			bytes = transactionsLib.getTransactionBytes(tx);
