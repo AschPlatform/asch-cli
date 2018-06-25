@@ -77,6 +77,8 @@ n stable
     -M, --main         Specify the mainnet, default: false
 ```
 
-## Documents
+## Detailed asch-cli Documentation
 
-[asch-docs](https://github.com/AschPlatform/asch-docs)
+* [Chinese](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage.md)
+* [English](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage_en.md)
+* [German](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage_de.md)
