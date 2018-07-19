@@ -16,6 +16,7 @@ function getBytes(block, skipSignature) {
 	bb.writeLong(block.height);
 	bb.writeInt(block.count);
 	bb.writeLong(block.fees);
+	bb.writeLong(block.reward);
 	bb.writeString(block.delegate);
 
 	if (block.previousBlock) {
@@ -163,7 +164,8 @@ module.exports = {
 			transactions: transactions,
 			height: 0,
 			count: transactions.length,
-			fees: 0
+			fees: 0,
+			reward: 0,
 		};
 
 		bytes = getBytes(block);
