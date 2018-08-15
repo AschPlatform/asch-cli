@@ -49,7 +49,7 @@ function getBalance(address) {
 function getAccount(address) {
   var params = {address: address};
   getApi().get('/api/accounts/', params, function (err, result) {
-    console.log(err || pretty(result.account));
+    console.log(err || pretty(result));
   });
 }
 
@@ -193,13 +193,18 @@ function sendMoney(options) {
   // getApi().put('/api/transactions/', params, function (err, result) {
   //   console.log(err || result);
   // });
-  var trs = aschJS.transaction.createTransaction(
-    options.to,
-    Number(options.amount),
-    options.message,
-    options.secret,
-    options.secondSecret
-  );
+  var trs = aschJS.transaction.createTransactionEx({
+    type: 1,
+    fee: Number(options.fee) || 10000000, 
+    message: options.message,
+    secret: options.secret,
+    secondSecret: options.secondSecret,
+    args: [
+      'XAS',
+      options.amount,
+      options.to
+    ]
+  });
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -298,13 +303,26 @@ function setSecondSecret(options) {
   });
 }
 
-function registerDapp(options) {
+function registerChain(options) {
   if (!options.metafile || !fs.existsSync(options.metafile)) {
     console.error("Error: invalid params, dapp meta file must exists");
     return;
   }
   var dapp = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
-  var trs = aschJS.dapp.createDApp(dapp, options.secret, options.secondSecret);
+  var trs = aschJS.transaction.createTransactionEx({
+    type: 200,
+    fee: 100 * 100000000,
+    secret: options.secret,
+    secondSecret: options.secondSecret,
+    args: [
+      dapp.name,
+      dapp.desc,
+      dapp.link,
+      dapp.icon,
+      dapp.delegates,
+      dapp.unlockDelegates,
+    ]
+  });
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -321,9 +339,23 @@ function dappTransaction(options) {
   var trs = aschJS.dapp.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
-    args: options.args
+    args: JSON.parse(options.args)
   }, options.secret)
   getApi().put('/api/dapps/' + options.dapp + '/transactions/signed', { transaction: trs }, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function transaction(options) {
+  var trs = aschJS.transaction.createTransactionEx({
+    type: Number(options.type),
+    fee: Number(options.fee) || 10000000, 
+    message: options.message,
+    secret: options.secret,
+    secondSecret: options.secondSecret,
+    args: JSON.parse(options.args)
+  })
+  getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
@@ -542,6 +574,7 @@ module.exports = function(program) {
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
     .option("-a, --amount <n>", "")
+    .option("-f, --fee <n>", "")
     .option("-t, --to <address>", "")
     .option("-m, --message <message>", "")
     .action(sendMoney);
@@ -595,12 +628,12 @@ module.exports = function(program) {
     .action(setSecondSecret);
     
   program
-    .command("registerdapp")
-    .description("register a dapp")
+    .command("registerchain")
+    .description("register a sidechain")
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
     .option("-f, --metafile <metafile>", "dapp meta file")
-    .action(registerDapp);
+    .action(registerChain);
   
   program
     .command("deposit")
@@ -677,4 +710,15 @@ module.exports = function(program) {
     .option("-s, --signature <signature>", "transaction or block signature")
     .option("-p, --publicKey <publicKey>", "signer public key")
     .action(verifyBytes)
+
+  program
+    .command("transaction")
+    .description("create a transaction in mainchain")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-t, --type <type>", "transaction type")
+    .option("-a, --args <args>", "json array format")
+    .option("-m, --message <message>", "")
+    .option("-f, --fee <fee>", "transaction fee")
+    .action(transaction);
 }

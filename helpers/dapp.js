@@ -66,11 +66,11 @@ module.exports = {
 				timestamp: 0,
 				senderPublicKey: sender.keypair.publicKey,
 				type: 3,
-				args: JSON.stringify([
+				args: [
 					assetInfo.name,
 					String(Number(assetInfo.amount) * Math.pow(10, assetInfo.precision)),
 					genesisAccount.address
-				])
+				]
 			}
 			bytes = dappTransactionsLib.getTransactionBytes(assetTrs);
 			assetTrs.signature = cryptoLib.sign(sender.keypair, bytes);
