@@ -1,7 +1,7 @@
 const crypto = require('../lib/crypto.js')
 
 module.exports = {
-  account: (secret) => {
+  generateAccount: (secret) => {
     const kp = crypto.keypair(secret)
     const address = crypto.getAddress(Buffer.from(kp.publicKey, 'hex'))
 
@@ -11,6 +11,5 @@ module.exports = {
       secret,
     }
   },
-
   isValidSecret: crypto.isValidSecret,
 }

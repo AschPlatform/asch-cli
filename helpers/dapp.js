@@ -1,8 +1,8 @@
-const cryptoLib = require('../lib/crypto.js')
 const ByteBuffer = require('bytebuffer')
 const crypto = require('crypto')
+const cryptoLib = require('../lib/crypto.js')
 const dappTransactionsLib = require('../lib/dapptransactions.js')
-const accounts = require('./account.js')
+const account = require('./account.js')
 
 const getBytes = (block, skipSignature) => {
   const size = 8 + 4 + 4 + 4 + 32 + 32 + 8 + 4 + 4 + 64
@@ -10,7 +10,6 @@ const getBytes = (block, skipSignature) => {
   const bb = new ByteBuffer(size, true)
 
   bb.writeString(block.prevBlockId || '0')
-
   bb.writeLong(block.height)
   bb.writeInt(block.timestamp)
   bb.writeInt(block.payloadLength)
@@ -30,8 +29,8 @@ const getBytes = (block, skipSignature) => {
   bb.writeInt(block.count)
 
   if (!skipSignature && block.signature) {
-    const pb = Buffer.from(block.signature, 'hex')
-    for (let i = 0; i < pb.length; i++) {
+    const ps = Buffer.from(block.signature, 'hex')
+    for (let i = 0; i < ps.length; i++) {
       bb.writeByte(pb[i])
     }
   }
@@ -40,8 +39,8 @@ const getBytes = (block, skipSignature) => {
   return bb.toBuffer()
 }
 
-const newDApp = (genesisAccount, publicKeys, assetInfo) => {
-  const sender = accounts.account(cryptoLib.generateSecret())
+const newDApp = (genesisAccount, assetInfo) => {
+  const sender = account.generateAccount(cryptoLib.generateSecret())
 
   const block = {
     delegate: genesisAccount.keypair.publicKey,
@@ -51,7 +50,7 @@ const newDApp = (genesisAccount, publicKeys, assetInfo) => {
     transactions: [],
     timestamp: 0,
     payloadLength: 0,
-    payloadHash: crypto.createHash('sha256')
+    payloadHash: crypto.createHash('sha256'),
   }
 
   if (assetInfo) {
