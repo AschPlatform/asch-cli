@@ -49,7 +49,7 @@ function getBalance(address) {
 function getAccount(address) {
   var params = {address: address};
   getApi().get('/api/accounts/', params, function (err, result) {
-    console.log(err || pretty(result.account));
+    console.log(err || pretty(result));
   });
 }
 
@@ -193,13 +193,18 @@ function sendMoney(options) {
   // getApi().put('/api/transactions/', params, function (err, result) {
   //   console.log(err || result);
   // });
-  var trs = aschJS.transaction.createTransaction(
-    options.to,
-    Number(options.amount),
-    options.message,
-    options.secret,
-    options.secondSecret
-  );
+  var trs = aschJS.transaction.createTransactionEx({
+    type: 1,
+    fee: Number(options.fee) || 10000000, 
+    message: options.message,
+    secret: options.secret,
+    secondSecret: options.secondSecret,
+    args: [
+      'XAS',
+      options.amount,
+      options.to
+    ]
+  });
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -314,8 +319,10 @@ function registerChain(options) {
     console.error("Error: invalid params, chain meta file must exists");
     return;
   }
+
   var chain = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
   var trs = aschJS.chain.createChain(chain, options.secret, options.secondSecret);
+
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -332,9 +339,23 @@ function chainTransaction(options) {
   var trs = aschJS.chain.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
-    args: options.args
+    args: JSON.parse(options.args)
   }, options.secret)
   getApi().put('/api/chains/' + options.chain + '/transactions/signed', { transaction: trs }, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function transaction(options) {
+  var trs = aschJS.transaction.createTransactionEx({
+    type: Number(options.type),
+    fee: Number(options.fee) || 10000000, 
+    message: options.message,
+    secret: options.secret,
+    secondSecret: options.secondSecret,
+    args: JSON.parse(options.args)
+  })
+  getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
@@ -553,6 +574,7 @@ module.exports = function(program) {
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
     .option("-a, --amount <n>", "")
+    .option("-f, --fee <n>", "")
     .option("-t, --to <address>", "")
     .option("-m, --message <message>", "")
     .action(sendMoney);
@@ -695,4 +717,15 @@ module.exports = function(program) {
     .option("-s, --signature <signature>", "transaction or block signature")
     .option("-p, --publicKey <publicKey>", "signer public key")
     .action(verifyBytes)
+
+  program
+    .command("transaction")
+    .description("create a transaction in mainchain")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-t, --type <type>", "transaction type")
+    .option("-a, --args <args>", "json array format")
+    .option("-m, --message <message>", "")
+    .option("-f, --fee <fee>", "transaction fee")
+    .action(transaction);
 }
