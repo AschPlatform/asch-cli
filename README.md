@@ -79,6 +79,6 @@ n stable
 
 ## Detailed asch-cli Documentation
 
-* [Chinese](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage.md)
-* [English](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage_en.md)
-* [German](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage_de.md)
+* [Chinese](https://github.com/AschPlatform/asch-docs/blob/master/cli_usage/zh-cn.md)
+* [English](https://github.com/AschPlatform/asch-docs/blob/master/cli_usage/en.md)
+* [German](https://github.com/AschPlatform/asch-docs/blob/master/cli_usage/de.md)
