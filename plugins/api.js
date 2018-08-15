@@ -210,6 +210,18 @@ function sendMoney(options) {
   });
 }
 
+function setName(options) {
+  var trs = aschJS.basic.setName(
+    options.username,
+    options.secret,
+    options.secondSecret
+  );
+  console.log(JSON.stringify(trs))
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
 function sendAsset(options) {
   var trs = aschJS.uia.createTransfer(
     options.currency,
@@ -234,7 +246,6 @@ function registerDelegate(options) {
   //   console.log(err || result);
   // });
   var trs = aschJS.delegate.createDelegate(
-    options.username,
     options.secret,
     options.secondSecret
   );
@@ -305,43 +316,32 @@ function setSecondSecret(options) {
 
 function registerChain(options) {
   if (!options.metafile || !fs.existsSync(options.metafile)) {
-    console.error("Error: invalid params, dapp meta file must exists");
+    console.error("Error: invalid params, chain meta file must exists");
     return;
   }
-  var dapp = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
-  var trs = aschJS.transaction.createTransactionEx({
-    type: 200,
-    fee: 100 * 100000000,
-    secret: options.secret,
-    secondSecret: options.secondSecret,
-    args: [
-      dapp.name,
-      dapp.desc,
-      dapp.link,
-      dapp.icon,
-      dapp.delegates,
-      dapp.unlockDelegates,
-    ]
-  });
+
+  var chain = JSON.parse(fs.readFileSync(options.metafile, 'utf8'));
+  var trs = aschJS.chain.createChain(chain, options.secret, options.secondSecret);
+
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
 
 function deposit(options) {
-  var trs = aschJS.transfer.createInTransfer(options.dapp, options.currency, options.amount, options.secret, options.secondSecret)
+  var trs = aschJS.transfer.createInTransfer(options.chain, options.currency, options.amount, options.secret, options.secondSecret)
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
 
-function dappTransaction(options) {
-  var trs = aschJS.dapp.createInnerTransaction({
+function chainTransaction(options) {
+  var trs = aschJS.chain.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
     args: JSON.parse(options.args)
   }, options.secret)
-  getApi().put('/api/dapps/' + options.dapp + '/transactions/signed', { transaction: trs }, function (err, result) {
+  getApi().put('/api/chains/' + options.chain + '/transactions/signed', { transaction: trs }, function (err, result) {
     console.log(err || result.transactionId)
   });
 }
@@ -578,6 +578,14 @@ module.exports = function(program) {
     .option("-t, --to <address>", "")
     .option("-m, --message <message>", "")
     .action(sendMoney);
+
+  program
+    .command("setname")
+    .description("set an username for your address")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-u, --username <username>", "")
+    .action(setName);
   
   program
     .command("sendasset")
@@ -595,7 +603,6 @@ module.exports = function(program) {
     .description("register delegate")
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
-    .option("-u, --username <username>", "")
     .action(registerDelegate);
     
   program
@@ -629,10 +636,10 @@ module.exports = function(program) {
     
   program
     .command("registerchain")
-    .description("register a sidechain")
+    .description("register a chain")
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
-    .option("-f, --metafile <metafile>", "dapp meta file")
+    .option("-f, --metafile <metafile>", "chain meta file")
     .action(registerChain);
   
   program
@@ -640,20 +647,20 @@ module.exports = function(program) {
     .description("deposit assets to an app")
     .option("-e, --secret <secret>", "")
     .option("-s, --secondSecret <secret>", "")
-    .option("-d, --dapp <dapp id>", "dapp id that you want to deposit")
+    .option("-n, --chain <chain name>", "chain name that you want to deposit")
     .option("-c, --currency <currency>", "deposit currency")
     .option("-a, --amount <amount>", "deposit amount")
     .action(deposit);
 
   program
-    .command("dapptransaction")
-    .description("create a dapp transaction")
+    .command("chaintransaction")
+    .description("create a chain transaction")
     .option("-e, --secret <secret>", "")
-    .option("-d, --dapp <dapp id>", "dapp id")
+    .option("-n, --chain <chain name>", "chain name")
     .option("-t, --type <type>", "transaction type")
     .option("-a, --args <args>", "json array format")
     .option("-f, --fee <fee>", "transaction fee")
-    .action(dappTransaction);
+    .action(chainTransaction);
 
   program
     .command("lock")

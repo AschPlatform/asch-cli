@@ -55,14 +55,15 @@ n stable
     gettransactions [options]              get transactions
     gettransaction [id]                    get transactions
     sendmoney [options]                    send money to some address
+    setname [option]                       set an username for your address, required to register as delegate
     registerdelegate [options]             register delegate
     upvote [options]                       vote for delegates
     downvote [options]                     cancel vote for delegates
     setsecondsecret [options]              set second secret
-    registerdapp [options]                 register a dapp
+    registerchain [options]                register a chain
     contract [options]                     contract operations
     crypto [options]                       crypto operations
-    dapps [options]                        manage your dapps
+    chains [options]                       manage your chains
     creategenesis [options]                create genesis block
     peerstat                               analyze block height of all peers
     delegatestat                           analyze delegates status
@@ -77,6 +78,8 @@ n stable
     -M, --main         Specify the mainnet, default: false
 ```
 
-## Documents
+## Detailed asch-cli Documentation
 
-[asch-docs](https://github.com/AschPlatform/asch-docs)
+* [Chinese](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage.md)
+* [English](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage_en.md)
+* [German](https://github.com/AschPlatform/asch/blob/master/docs/asch_cli_usage_de.md)
