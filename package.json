@@ -18,7 +18,7 @@
   "author": "Qingfeng Shan <sqf1225@foxmail.com>",
   "license": "MIT",
   "dependencies": {
-    "asch-js": "github:a1300/asch-js#fix_1_4_api",
+    "asch-js": "https://github.com/AschPlatform/asch-js/tarball/v1.4.1",
     "assert": "^1.4.1",
     "async": "1.5.2",
     "bitcore-mnemonic": "1.0.1",
@@ -42,5 +42,12 @@
     "type": "git",
     "url": "https://github.com/AschPlatform/asch-cli.git"
   },
-  "homepage": "https://github.com/AschPlatform/asch-cli"
+  "homepage": "https://github.com/AschPlatform/asch-cli",
+  "devDependencies": {
+    "eslint": "^4.19.1",
+    "eslint-config-airbnb-base": "^12.1.0",
+    "eslint-config-asch-base": "^1.0.2",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-mocha": "^4.12.1"
+  }
 }
