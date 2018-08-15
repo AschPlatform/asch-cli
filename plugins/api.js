@@ -294,8 +294,8 @@ function downvote(options) {
 }
 
 function setSecondSecret(options) {
-  var trs = aschJS.signature.createSignature(options.secret, options.secondSecret)
-  getApi().broadcastTransaction(trs, function (err, result) {
+  const trs = aschJS.signature.createSignature(options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
@@ -306,55 +306,55 @@ function registerChain(options) {
     return
   }
 
-  var chain = JSON.parse(fs.readFileSync(options.metafile, 'utf8'))
-  var trs = aschJS.chain.createChain(chain, options.secret, options.secondSecret)
+  const chain = JSON.parse(fs.readFileSync(options.metafile, 'utf8'))
+  const trs = aschJS.chain.createChain(chain, options.secret, options.secondSecret)
 
-  getApi().broadcastTransaction(trs, function (err, result) {
+  getApi().broadcastTransaction(trs, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
 
 function deposit(options) {
-  var trs = aschJS.transfer.createInTransfer(options.chain, options.currency, options.amount, options.secret, options.secondSecret)
-  getApi().broadcastTransaction(trs, function (err, result) {
+  const trs = aschJS.transfer.createInTransfer(options.chain, options.currency, options.amount, options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
 
 function chainTransaction(options) {
-  var trs = aschJS.chain.createInnerTransaction({
+  const trs = aschJS.chain.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
     args: JSON.parse(options.args)
   }, options.secret)
-  getApi().put('/api/chains/' + options.chain + '/transactions/signed', { transaction: trs }, function (err, result) {
+  getApi().put('/api/chains/' + options.chain + '/transactions/signed', { transaction: trs }, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
 
 function transaction(options) {
-  var trs = aschJS.transaction.createTransactionEx({
+  const trs = aschJS.transaction.createTransactionEx({
     type: Number(options.type),
-    fee: Number(options.fee) || 10000000, 
+    fee: Number(options.fee) || 10000000,
     message: options.message,
     secret: options.secret,
     secondSecret: options.secondSecret,
-    args: JSON.parse(options.args)
+    args: JSON.parse(options.args),
   })
-  getApi().broadcastTransaction(trs, function (err, result) {
+  getApi().broadcastTransaction(trs, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
 
 function lock(options) {
-  var trs = aschJS.transaction.createLock(options.height, options.secret, options.secondSecret)
-  getApi().broadcastTransaction(trs, function (err, result) {
+  const trs = aschJS.transaction.createLock(options.height, options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
 
 function getFullBlockById(id) {
-  getApi().get('/api/blocks/full?id=' + id, function (err, result) {
+  getApi().get('/api/blocks/full?id=' + id, (err, result) => {
     console.log(err || pretty(result.block))
   })
 }

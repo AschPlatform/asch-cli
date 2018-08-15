@@ -59,9 +59,9 @@ module.exports = {
     // fund recipient account
     if (accountsFile && fs.existsSync(accountsFile)) {
       const lines = fs.readFileSync(accountsFile, 'utf8').split('\n')
-      for (let i in lines) {
+      for (let i = 0; i < lines.length; i++) {
         const parts = lines[i].split('\t')
-        if (parts.length != 2) {
+        if (parts.length !== 2) {
           console.error('Invalid recipient balance format')
           process.exit(1)
         }
@@ -74,7 +74,7 @@ module.exports = {
           senderPublicKey: sender.keypair.publicKey,
           signatures: [],
           message: '',
-          args: [Number(amount), parts[0]]
+          args: [Number(amount), parts[0]],
         }
 
         transactions.push(signTransaction(trs, sender.keypair))
@@ -127,18 +127,6 @@ module.exports = {
     }
 
     // make votes
-    const delegateNames = delegates.map(delegate => delegate.name)
-
-    const voteTransaction = {
-      type: 11,
-      fee: 0,
-      timestamp: 0,
-      senderId: genesisAccount.address,
-      senderPublicKey: genesisAccount.keypair.publicKey,
-      signatures: [],
-      args: [delegateNames.join(',')],
-      message: '',
-    }
 
     transactions.forEach((tx) => {
       bytes = transactionsLib.getTransactionBytes(tx)
@@ -173,20 +161,20 @@ module.exports = {
   },
 
   from: (genesisBlock, genesisAccount, dapp) => {
-    for (let i in genesisBlock.transactions) {
+    for (let i = 0; i < genesisBlock.transactions.length; i++) {
       const tx = genesisBlock.transactions[i]
 
-      if (tx.type == 5) {
-        if (tx.asset.dapp.name == dapp.name) {
-          throw new Error("DApp with name '" + dapp.name + "' already exists in genesis block")
+      if (tx.type === 5) {
+        if (tx.asset.dapp.name === dapp.name) {
+          throw new Error(`DApp with name '${dapp.name}' already exists in genesis block`)
         }
 
-        if (tx.asset.dapp.git == dapp.git) {
-          throw new Error("DApp with git '" + dapp.git + "' already exists in genesis block")
+        if (tx.asset.dapp.git === dapp.git) {
+          throw new Error(`DApp with name '${dapp.git}' already exists in genesis block`)
         }
 
-        if (tx.asset.dapp.link == dapp.link) {
-          throw new Error("DApp with link '" + dapp.link + "' already exists in genesis block")
+        if (tx.asset.dapp.link === dapp.link) {
+          throw new Error(`DApp with name '${dapp.link}' already exists in genesis block`)
         }
       }
     }

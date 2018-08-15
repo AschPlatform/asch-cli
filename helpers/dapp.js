@@ -71,7 +71,7 @@ const newDApp = (genesisAccount, assetInfo) => {
     block.payloadHash.update(bytes)
 
     bytes = dappTransactionsLib.getTransactionBytes(assetTrs)
-    assetTrs.id = cryptoLib.getId(bytes)
+    assetTrs.id = cryptoLib.getHash(bytes)
     block.transactions.push(assetTrs)
   }
   block.count = block.transactions.length
@@ -80,7 +80,7 @@ const newDApp = (genesisAccount, assetInfo) => {
   bytes = getBytes(block)
   block.signature = cryptoLib.sign(genesisAccount.keypair, bytes)
   bytes = getBytes(block)
-  block.id = cryptoLib.getId(bytes)
+  block.id = cryptoLib.getHash(bytes)
 
   return block
 }
