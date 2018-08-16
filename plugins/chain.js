@@ -21,7 +21,7 @@ function bip39Validator(input) {
 }
 
 function assetNameValidator(input) {
-  let done = this.async()
+  const done = this.async()
   if (!input || !/^[A-Z]{3,6}$/.test(input)) {
     return done('Invalid currency symbol')
   }
@@ -29,7 +29,7 @@ function assetNameValidator(input) {
 }
 
 function amountValidator(input) {
-  let done = this.async()
+  const done = this.async()
   if (!/^[1-9][0-9]*$/.test(input)) {
     return done('Amount should be integer')
   }
@@ -37,8 +37,8 @@ function amountValidator(input) {
 }
 
 function precisionValidator(input) {
-  let done = this.async()
-  let precision = Number(input)
+  const done = this.async()
+  const precision = Number(input)
   if (!Number.isInteger(precision) || precision < 0 || precision > 16) {
     return done('Precision is between 0 and 16')
   }
@@ -49,13 +49,13 @@ async function prompt(question) {
   if (Array.isArray(question)) {
     return await inquirer.prompt(question)
   } else {
-    let answer = await inquirer.prompt([question])
+    const answer = await inquirer.prompt([question])
     return answer[question.name]
   }
 }
 
 async function createChainMetaFile() {
-  let answer = await prompt([
+  const answer = await prompt([
     {
       type: 'input',
       name: 'name',
@@ -117,12 +117,12 @@ async function createChainMetaFile() {
       name: 'icon',
       message: 'Enter chain icon url',
       validate: function (value) {
-        var done = this.async()
+        const done = this.async()
 
         if (!validUrl.isUri(value)) {
           return done('Invalid chain icon, must be a valid url')
         }
-        var extname = path.extname(value)
+        const extname = path.extname(value)
         if (['.png', '.jpg', '.jpeg'].indexOf(extname) == -1) {
           return done('Invalid chain icon file type')
         }
@@ -138,9 +138,9 @@ async function createChainMetaFile() {
       name: 'delegates',
       message: 'Enter public keys of chain delegates - hex array, use "," for separator',
       validate: function (value) {
-        var done = this.async()
+        const done = this.async()
 
-        var publicKeys = value.split(',')
+        const publicKeys = value.split(',')
 
         if (publicKeys.length == 0) {
           done('Chain requires at least 1 delegate public key')
@@ -149,7 +149,7 @@ async function createChainMetaFile() {
 
         for (var i in publicKeys) {
           try {
-            var b = new Buffer(publicKeys[i], 'hex')
+            const b = Buffer.from(publicKeys[i], 'hex')
             if (b.length != 32) {
               done('Invalid public key: ' + publicKeys[i])
               return
@@ -167,8 +167,8 @@ async function createChainMetaFile() {
       name: 'unlockDelegates',
       message: 'How many delegates are needed to unlock asset of a chain?',
       validate: function (value) {
-        var done = this.async()
-        var n = Number(value)
+        const done = this.async()
+        const n = Number(value)
         if (!Number.isInteger(n) || n < 3 || n > 101) {
           return done('Invalid unlockDelegates')
         }
@@ -176,7 +176,7 @@ async function createChainMetaFile() {
       }
     }
   ])
-  var chainMetaInfo = {
+  const chainMetaInfo = {
     name: answer.name,
     link: answer.link,
     desc: answer.desc || '',
@@ -184,25 +184,25 @@ async function createChainMetaFile() {
     delegates: answer.delegates.split(','),
     unlockDelegates: Number(answer.unlockDelegates)
   }
-  var chainMetaJson = JSON.stringify(chainMetaInfo, null, 2)
+  const chainMetaJson = JSON.stringify(chainMetaInfo, null, 2)
   fs.writeFileSync('./chain.json', chainMetaJson, 'utf8')
   console.log('Chain meta information is saved to ./chain.json ...')
 }
 
 async function createChain() {
   console.log('Copying template to the current directory ...')
-  shell.cp('-R', templatePath + '/*', '.')
+  shell.cp('-R', `${templatePath}/*`, '.')
   await createChainMetaFile()
 }
 
 async function depositChain() {
-  let result = await inquirer.prompt([
+  const result = await inquirer.prompt([
     {
       type: 'password',
       name: 'secret',
       message: 'Enter secret',
       validate: bip39Validator,
-      required: true
+      required: true,
     },
     {
       type: 'input',
@@ -211,13 +211,13 @@ async function depositChain() {
       validate: function (value) {
         return !isNaN(parseInt(value))
       },
-      required: true
+      required: true,
     },
     {
       type: 'input',
       name: 'chain',
       message: 'chain name',
-      required: true
+      required: true,
     },
     {
       type: 'input',
@@ -226,30 +226,30 @@ async function depositChain() {
       validate: function (message) {
         return message.length < 100
       },
-      required: false
-    }
+      required: false,
+    },
   ])
 
 
-  var realAmount = parseFloat((parseInt(result.amount) * 100000000).toFixed(0))
-  var body = {
+  const realAmount = parseFloat((parseInt(result.amount) * 100000000).toFixed(0))
+  const body = {
     secret: result.secret,
     chain: result.chain,
-    amount: realAmount
+    amount: realAmount,
   }
 
   if (result.secondSecret && result.secondSecret.length > 0) {
     body.secondSecret = result.secondSecret
   }
 
-  let hostResult = await inquirer.prompt([
+  const hostResult = await inquirer.prompt([
     {
       type: 'input',
       name: 'host',
       message: 'Host and port',
       default: 'localhost:4096',
-      required: true
-    }
+      required: true,
+    },
   ])
 
   request({
@@ -462,7 +462,7 @@ async function createGenesisBlock() {
     }
   }
 
-  const account = accountHelper.account(genesisSecret)
+  const account = accountHelper.generateAccount(genesisSecret)
   const chainBlock = dappHelper.newDApp(account, assetInfo)
   const chainGenesisBlockJson = JSON.stringify(chainBlock, null, 2)
   fs.writeFileSync('genesis.json', chainGenesisBlockJson, 'utf8')

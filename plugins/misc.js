@@ -28,10 +28,10 @@ function appendFileSync(file, obj) {
 }
 
 function genGenesisBlock(options) {
-  const genesisAccount = accountHelper.account(cryptoLib.generateSecret())
+	const genesisAccount = accountHelper.genesisAccount(cryptoLib.generateSecret())
   const newBlockInfo = blockHelper.newBlock(genesisAccount, null, options.file)
 	const delegateSecrets = newBlockInfo.delegates.map(d => d.secret)
-	
+
   writeFileSync('./genesisBlock.json', newBlockInfo.block)
 
   const logFile = './genGenesisBlock.log'

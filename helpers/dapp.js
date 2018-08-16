@@ -14,9 +14,9 @@ const getBytes = (block, skipSignature) => {
   bb.writeInt(block.timestamp)
   bb.writeInt(block.payloadLength)
 
-  const ph = Buffer.from(block.payloadHash, 'hex')
-  for (let i = 0; i < ph.length; i++) {
-    bb.writeByte(ph[i])
+  const bp = Buffer.from(block.payloadHash, 'hex')
+  for (let i = 0; i < bp.length; i++) {
+    bb.writeByte(bp[i])
   }
 
   const pb = Buffer.from(block.delegate, 'hex')

@@ -10,7 +10,7 @@ async function generatePublicKey() {
       message: 'Enter secret of your testnet account',
     },
   ])
-  const account = accountHelper.account(result.secret.trim())
+  const account = accountHelper.generateAccount(result.secret.trim())
   console.log(`Public key: ${account.keypair.publicKey}`)
   console.log(`Address: ${account.address}`)
 }
@@ -27,7 +27,7 @@ async function generateAccount() {
   const accounts = []
 
   for (let i = 0; i < amount; i++) {
-    const account = accountHelper.account(cryptoLib.generateSecret())
+    const account = accountHelper.generateAccount(cryptoLib.generateSecret())
     accounts.push({
       address: account.address,
       secret: account.secret,

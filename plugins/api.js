@@ -241,9 +241,7 @@ function registerDelegate(options) {
 }
 
 function vote(secret, publicKeys, op, secondSecret) {
-  const votes = publicKeys.split(',').map((el) => {
-    return op + el
-  })
+  const votes = publicKeys.split(',').map(el => op + el)
   const trs = aschJS.vote.createVote(
     votes,
     secret,
@@ -255,31 +253,31 @@ function vote(secret, publicKeys, op, secondSecret) {
 }
 
 function listdiffvotes(options) {
-  let params = { username: options.username }
-  getApi().get('/api/delegates/get', params, (err, result) => {
+  const nameParams = { username: options.username }
+  getApi().get('/api/delegates/get', nameParams, (err, result) => {
     const publicKey = result.delegate.publicKey
-    let params = {
+    const params = {
       address: result.delegate.address,
       limit: options.limit || 101,
       offset: options.offset || 0,
     }
     getApi().get('/api/accounts/delegates', params, (err, result) => {
-      var names_a = []
-      for (var i = 0; i < result.delegates.length; ++i) {
-          names_a[i] = result.delegates[i].username
+      const namesA = []
+      for (let i = 0; i < result.delegates.length; ++i) {
+        names_a[i] = result.delegates[i].username
       }
-      var a = new Set(names_a)
-      var params = {publicKey: publicKey}
-      getApi().get('/api/delegates/voters', params, (err, result) => {
-          var names_b = []
-          for (var i = 0; i < result.accounts.length; ++i) {
-              names_b[i] = result.accounts[i].username
-          }
-          var b = new Set(names_b)
-          var diffab = [...a].filter(x => !b.has(x))
-          var diffba = [...b].filter(x => !a.has(x))
-          console.log('you voted but doesn\'t vote you: \n\t', JSON.stringify(diffab))
-          console.log('\nvoted you but you don\'t voted: \n\t', JSON.stringify(diffba))
+      const a = new Set(namesA)
+      const params2 = { publicKey }
+      getApi().get('/api/delegates/voters', params2, (err, result) => {
+        const namesB = []
+        for (let i = 0; i < result.accounts.length; ++i) {
+          names_b[i] = result.accounts[i].username
+        }
+        const b = new Set(namesB)
+        const diffab = [...a].filter(x => !b.has(x))
+        const diffba = [...b].filter(x => !a.has(x))
+        console.log('you voted but doesn\'t vote you: \n\t', JSON.stringify(diffab))
+        console.log('\nvoted you but you don\'t voted: \n\t', JSON.stringify(diffba))
       })
     })
   })
@@ -325,9 +323,9 @@ function chainTransaction(options) {
   const trs = aschJS.chain.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
-    args: JSON.parse(options.args)
+    args: JSON.parse(options.args),
   }, options.secret)
-  getApi().put('/api/chains/' + options.chain + '/transactions/signed', { transaction: trs }, (err, result) => {
+  getApi().put(`/api/chains/${options.chain}/transactions/signed`, { transaction: trs }, (err, result) => {
     console.log(err || result.transactionId)
   })
 }
@@ -354,70 +352,65 @@ function lock(options) {
 }
 
 function getFullBlockById(id) {
-  getApi().get('/api/blocks/full?id=' + id, (err, result) => {
+  getApi().get(`/api/blocks/full?id=${id}`, (err, result) => {
     console.log(err || pretty(result.block))
   })
 }
 
 function getFullBlockByHeight(height) {
-  getApi().get('/api/blocks/full?height=' + height, (err, result) => {
+  getApi().get(`/api/blocks/full?height=${height}`, (err, result) => {
     console.log(err || pretty(result.block))
   })
 }
 
 function getTransactionBytes(options) {
   try {
-    var trs = JSON.parse(fs.readFileSync(options.file))
+    const trs = JSON.parse(fs.readFileSync(options.file))
+    console.log(aschJS.crypto.getBytes(trs, true, true).toString('hex'))
   } catch (e) {
     console.log('Invalid transaction format')
-    return
   }
-  console.log(aschJS.crypto.getBytes(trs, true, true).toString('hex'))
 }
 
 function getTransactionId(options) {
   try {
-    var trs = JSON.parse(fs.readFileSync(options.file))
+    const trs = JSON.parse(fs.readFileSync(options.file))
+    console.log(aschJS.crypto.getId(trs))
   } catch (e) {
     console.log('Invalid transaction format')
-    return
   }
-  console.log(aschJS.crypto.getId(trs))
 }
 
 function getBlockPayloadHash(options) {
   try {
-    var block = JSON.parse(fs.readFileSync(options.file))
+    const block = JSON.parse(fs.readFileSync(options.file))
+    const payloadHash = crypto.createHash('sha256')
+    for (let i = 0; i < block.transactions.length; ++i) {
+      payloadHash.update(aschJS.crypto.getBytes(block.transactions[i]))
+    }
+    console.log(payloadHash.digest().toString('hex'))
   } catch (e) {
     console.log('Invalid transaction format')
-    return
   }
-  var payloadHash = crypto.createHash('sha256')
-  for (let i = 0; i < block.transactions.length; ++i) {
-    payloadHash.update(aschJS.crypto.getBytes(block.transactions[i]))
-  }
-  console.log(payloadHash.digest().toString('hex'))
 }
 
 function getBlockBytes(options) {
   try {
-    var block = JSON.parse(fs.readFileSync(options.file))
+    const block = JSON.parse(fs.readFileSync(options.file))
+    console.log(blockHelper.getBytes(block, true).toString('hex'))
   } catch (e) {
     console.log('Invalid transaction format')
-    return
   }
-  console.log(blockHelper.getBytes(block, true).toString('hex'))
 }
 
 function getBlockId(options) {
   try {
     const block = JSON.parse(fs.readFileSync(options.file))
+    const bytes = blockHelper.getBytes(block)
+    console.log(cryptoLib.getHash(bytes))
   } catch (e) {
     console.log('Invalid transaction format')
-    return
   }
-  const bytes = blockHelper.getBytes(block)
-  console.log(cryptoLib.getId(bytes))
 }
 
 function verifyBytes(options) {
@@ -556,7 +549,7 @@ module.exports = (program) => {
 
   program
     .command('sendmoney')
-    .description('send money to some address')
+    .description('send xas to an address')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-a, --amount <n>', '')
@@ -575,7 +568,7 @@ module.exports = (program) => {
 
   program
     .command('sendasset')
-    .description('send asset to some address')
+    .description('send asset to an address')
     .option('-e, --secret <secret>', '')
     .option('-s, --secondSecret <secret>', '')
     .option('-c, --currency <currency>', '')

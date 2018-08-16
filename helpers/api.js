@@ -12,7 +12,7 @@ function resultHandler(cb) {
       }
       cb(msg)
     } else if (!body.success) {
-      cb('Server error: ' + (body.error || body.message))
+      cb(`Server error: ${body.error || body.message}`)
     } else {
       cb(null, body)
     }
@@ -55,22 +55,22 @@ Api.prototype.post = function (path, data, cb) {
   request({
     method: 'POST',
     url: this.baseUrl + path,
-    json: data
+    json: data,
   }, resultHandler(cb))
 }
 
 Api.prototype.broadcastTransaction = function (trs, cb) {
   request({
-    method: "POST",
-    url: this.baseUrl + "/peer/transactions",
+    method: 'POST',
+    url: `${this.baseUrl}/peer/transactions`,
     // TODO magic should be read from a config file or options
     headers: {
       magic: this.magic,
-      version: ""
+      version: '',
     },
     json: {
-      transaction: trs
-    }
+      transaction: trs,
+    },
   }, resultHandler(cb))
 }
 

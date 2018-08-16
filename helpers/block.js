@@ -45,7 +45,7 @@ const signTransaction = (trs, keypair) => {
   let bytes = transactionsLib.getTransactionBytes(trs)
   trs.signatures.push(cryptoLib.sign(sender.keypair, bytes))
   bytes = transactionsLib.getTransactionBytes(trs)
-  trs.id = cryptoLib.getId(bytes)
+  trs.id = cryptoLib.getHash(bytes)
   return trs
 }
 
@@ -96,7 +96,7 @@ module.exports = {
 
     // make delegates
     for (let i = 0; i < 101; i++) {
-      const delegate = accounts.account(cryptoLib.generateSecret())
+      const delegate = account.generateAccount(cryptoLib.generateSecret())
 
       const username = `asch_g${i + 1}`
       delegate.name = username
@@ -152,7 +152,7 @@ module.exports = {
     bytes = getBytes(block)
     block.signature = cryptoLib.sign(sender.keypair, bytes)
     bytes = getBytes(block)
-    block.id = cryptoLib.getId(bytes)
+    block.id = cryptoLib.getHash(bytes)
 
     return {
       block,
@@ -194,7 +194,7 @@ module.exports = {
     let bytes = transactionsLib.getTransactionBytes(dappTransaction)
     dappTransaction.signature = cryptoLib.sign(genesisAccount.keypair, bytes)
     bytes = transactionsLib.getTransactionBytes(dappTransaction)
-    dappTransaction.id = cryptoLib.getId(bytes)
+    dappTransaction.id = cryptoLib.getHash(bytes)
 
     genesisBlock.payloadLength += bytes.length
     const payloadHash = crypto.createHash('sha256').update(Buffer.from(genesisBlock.payloadHash, 'hex'))
@@ -208,7 +208,7 @@ module.exports = {
     bytes = getBytes(genesisBlock)
     genesisBlock.blockSignature = cryptoLib.sign(sender.keypair, bytes)
     bytes = getBytes(genesisBlock)
-    genesisBlock.id = cryptoLib.getId(bytes)
+    genesisBlock.id = cryptoLib.getHash(bytes)
 
     return {
       block: genesisBlock,
