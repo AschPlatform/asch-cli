@@ -481,7 +481,6 @@ module.exports = (program) => {
     .option('-g, --genesis', 'create genesis block')
     .action(function (options) {
       (async function () {
-				console.log('opetions', options)
         try {
           if (options.create) {
             createChain()

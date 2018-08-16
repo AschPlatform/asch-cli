@@ -39,27 +39,24 @@ async function generateAccount() {
 }
 
 module.exports = (program) => {
-	console.log(program)
   program
     .command('crypto')
     .description('crypto operations')
     .option('-p, --pubkey', 'generate public key from secret')
     .option('-g, --generate', 'generate random accounts')
     .action((options) => {
-      // (async function () {
-			// 	console.log(options)
-      //   try {
-      //     if (options.pubkey) {
-      //       generatePublicKey()
-      //     } else if (options.generate) {
-      //       generateAccount()
-      //     } else {
-      //       console.log("node 'crypto -h' to get help")
-      //     }
-      //   } catch (e) {
-      //     console.log(e)
-      //   }
-			// })()
-			console.log(options)
+      (async function () {
+        try {
+          if (options.pubkey) {
+            generatePublicKey()
+          } else if (options.generate) {
+            generateAccount()
+          } else {
+            console.log("node 'crypto -h' to get help")
+          }
+        } catch (e) {
+          console.log(e)
+        }
+			})()
     })
 }
