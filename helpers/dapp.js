@@ -31,7 +31,7 @@ const getBytes = (block, skipSignature) => {
   if (!skipSignature && block.signature) {
     const ps = Buffer.from(block.signature, 'hex')
     for (let i = 0; i < ps.length; i++) {
-      bb.writeByte(pb[i])
+      bb.writeByte(ps[i])
     }
   }
 

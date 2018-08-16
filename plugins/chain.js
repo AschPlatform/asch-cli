@@ -388,16 +388,16 @@ async function installChain() {
       name: 'host',
       message: 'Host and port',
       default: 'localhost:4096',
-      required: true
+      required: true,
     },
     {
       type: 'input',
       name: 'masterpassword',
       message: 'Enter chain master password',
-      required: true
+      required: true,
     }])
 
-  var body = {
+  const body = {
     name: String(result.chain),
     master: String(result.masterpassword)
   }
