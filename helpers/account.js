@@ -3,7 +3,7 @@ const crypto = require('../lib/crypto.js')
 module.exports = {
   generateAccount: (secret) => {
     const keypair = crypto.generateKeyPair(secret)
-    const address = crypto.getAddress(Buffer.from(kp.publicKey, 'hex'))
+    const address = crypto.getAddress(Buffer.from(keypair.publicKey, 'hex'))
 
     return {
       keypair,
