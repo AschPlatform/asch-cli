@@ -305,7 +305,7 @@ function registerChain(options) {
   }
 
   const chain = JSON.parse(fs.readFileSync(options.metafile, 'utf8'))
-  const trs = aschJS.chain.createChain(chain, options.secret, options.secondSecret)
+  const trs = aschJS.dapp.createDApp(chain, options.secret, options.secondSecret)
 
   getApi().broadcastTransaction(trs, (err, result) => {
     console.log(err || result.transactionId)
@@ -320,7 +320,7 @@ function deposit(options) {
 }
 
 function chainTransaction(options) {
-  const trs = aschJS.chain.createInnerTransaction({
+  const trs = aschJS.dapp.createInnerTransaction({
     fee: options.fee,
     type: Number(options.type),
     args: JSON.parse(options.args),
