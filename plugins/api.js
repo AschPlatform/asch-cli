@@ -200,7 +200,6 @@ function sendMoney(options) {
     secret: options.secret,
     secondSecret: options.secondSecret,
     args: [
-      'XAS',
       options.amount,
       options.to
     ]
