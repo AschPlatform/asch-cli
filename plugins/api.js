@@ -4,8 +4,14 @@ var aschJS = require('asch-js');
 var Api = require('../helpers/api.js');
 var blockHelper = require('../helpers/block.js');
 var cryptoLib = require('../lib/crypto.js');
-
+var querystring = require('querystring');
 var globalOptions;
+
+function requestURI(a){
+    if( typeof(a) !== 'object' ) 
+        return '';
+    return '?' + Object.keys(a).map(function(k){ return k + '=' + a[k] }).join('&');
+}
 
 function getApi() {
   return new Api({host: globalOptions.host, port: globalOptions.port, mainnet: !!globalOptions.main});
@@ -40,18 +46,16 @@ function getBlockStatus() {
 }
 
 function getBalance(address) {
-  var params = {address: address};
-  getApi().get('/api/accounts/getBalance', params, function (err, result) {
-    console.log(err || result.balance);
+  getApi().get('/api/v2/accounts/' + address, null, function (err, result) {
+    console.log(err || result.account.xas);
   });
 }
 
 function getAccount(address) {
-  var params = {address: address};
-  getApi().get('/api/accounts/', params, function (err, result) {
+  getApi().get('/api/v2/accounts/' + address, null, function (err, result) {
     console.log(err || pretty(result));
   });
-}
+} 
 
 function getVotedDelegates(address, options) {
   var params = {
@@ -103,30 +107,20 @@ function getDelegateByUsername(username) {
 }
 
 function getBlocks(options) {
-  var params = {
-    limit: options.limit,
-    orderBy: options.sort,
-    offset: options.offset,
-    totalAmount: options.totalAmount,
-    totalFee: options.totalFee,
-    reward: options.reward,
-    generatorPublicKey: options.generatorPublicKey
-  };
-  getApi().get('/api/blocks/', params, function (err, result) {
+  let request = querystring.stringify(options);
+  getApi().get('/api/v2/blocks/?' + request, null, function (err, result) {
     console.log(err || pretty(result));
   });
 }
 
 function getBlockById(id) {
-  var params = {id: id};
-  getApi().get('/api/blocks/get', params, function (err, result) {
+  getApi().get('/api/v2/blocks/' + id, null, function (err, result) {
     console.log(err || pretty(result.block));
   });
 }
 
 function getBlockByHeight(height) {
-  var params = {height: height};
-  getApi().get('/api/blocks/get', params, function (err, result) {
+  getApi().get('/api/v2/blocks/' + height, null, function (err, result) {
     console.log(err || pretty(result.block));
   });
 }
@@ -158,27 +152,15 @@ function getUnconfirmedTransactions(options) {
 }
 
 function getTransactions(options) {
-  var params = {
-    blockId: options.blockId,
-    limit: options.limit,
-    orderBy: options.sort,
-    offset: options.offset,
-    type: options.type,
-    senderPublicKey: options.senderPublicKey,
-    senderId: options.senderId,
-    recipientId: options.recipientId,
-    amount: options.amount,
-    fee: options.fee,
-    message: options.message
-  };
-  getApi().get('/api/transactions/', params, function (err, result) {
+  let request = querystring.stringify(options);
+  getApi().get('/api/v2/transactions?' + request, null, function (err, result) {
     console.log(err || pretty(result.transactions));
   });
 }
 
 function getTransaction(id) {
   var params = {id: id};
-  getApi().get('/api/transactions/get', params, function (err, result) {
+  getApi().get('/api/v2/transactions/' + id, null, function (err, result) {
     console.log(err || pretty(result.transaction));
   });
 }
@@ -511,11 +493,8 @@ module.exports = function(program) {
     .description("get blocks")
     .option("-o, --offset <n>", "")
     .option("-l, --limit <n>", "")
-    .option("-r, --reward <n>", "")
-    .option("-f, --totalFee <n>", "")
-    .option("-a, --totalAmount <n>", "")
-    .option("-g, --generatorPublicKey <publicKey>", "")
-    .option("-s, --sort <field:mode>", "height:asc, totalAmount:asc, totalFee:asc")
+    .option("-t, --transactions <boolean>", "If this keyword is added with transactions=true then the block will be accompanied by transaction information")
+    .option("-s, --orderBy <field:mode>", "height:asc, totalAmount:asc, totalFee:asc")
     .action(getBlocks);
     
   program
@@ -546,21 +525,16 @@ module.exports = function(program) {
     .option("-k, --key <sender public key>", "")
     .option("-a, --address <address>", "")
     .action(getUnconfirmedTransactions);
-    
+
   program
     .command("gettransactions")
     .description("get transactions")
-    .option("-b, --blockId <id>", "")
     .option("-o, --offset <n>", "")
     .option("-l, --limit <n>", "")
     .option("-t, --type <n>", "transaction type")
-    .option("-s, --sort <field:mode>", "")
-    .option("-a, --amount <n>", "")
-    .option("-f, --fee <n>", "")
+    .option("-s, --orderBy <field:mode>", "Sort by")
     .option("-m, --message <message>", "")
-    .option("--senderPublicKey <key>", "")
     .option("--senderId <id>", "")
-    .option("--recipientId <id>", "")
     .action(getTransactions);
     
   program
