@@ -4,8 +4,14 @@ var aschJS = require('asch-js');
 var Api = require('../helpers/api.js');
 var blockHelper = require('../helpers/block.js');
 var cryptoLib = require('../lib/crypto.js');
-
+var querystring = require('querystring');
 var globalOptions;
+
+function requestURI(a){
+    if( typeof(a) !== 'object' ) 
+        return '';
+    return '?' + Object.keys(a).map(function(k){ return k + '=' + a[k] }).join('&');
+}
 
 function getApi() {
   return new Api({host: globalOptions.host, port: globalOptions.port, mainnet: !!globalOptions.main});
@@ -40,18 +46,16 @@ function getBlockStatus() {
 }
 
 function getBalance(address) {
-  var params = {address: address};
-  getApi().get('/api/accounts/getBalance', params, function (err, result) {
-    console.log(err || result.balance);
+  getApi().get('/api/v2/accounts/' + address, null, function (err, result) {
+    console.log(err || result.account.xas);
   });
 }
 
 function getAccount(address) {
-  var params = {address: address};
-  getApi().get('/api/accounts/', params, function (err, result) {
+  getApi().get('/api/v2/accounts/' + address, null, function (err, result) {
     console.log(err || pretty(result));
   });
-}
+} 
 
 function getVotedDelegates(address, options) {
   var params = {
@@ -103,30 +107,20 @@ function getDelegateByUsername(username) {
 }
 
 function getBlocks(options) {
-  var params = {
-    limit: options.limit,
-    orderBy: options.sort,
-    offset: options.offset,
-    totalAmount: options.totalAmount,
-    totalFee: options.totalFee,
-    reward: options.reward,
-    generatorPublicKey: options.generatorPublicKey
-  };
-  getApi().get('/api/blocks/', params, function (err, result) {
+  let request = querystring.stringify(options);
+  getApi().get('/api/v2/blocks/?' + request, null, function (err, result) {
     console.log(err || pretty(result));
   });
 }
 
 function getBlockById(id) {
-  var params = {id: id};
-  getApi().get('/api/blocks/get', params, function (err, result) {
+  getApi().get('/api/v2/blocks/' + id, null, function (err, result) {
     console.log(err || pretty(result.block));
   });
 }
 
 function getBlockByHeight(height) {
-  var params = {height: height};
-  getApi().get('/api/blocks/get', params, function (err, result) {
+  getApi().get('/api/v2/blocks/' + height, null, function (err, result) {
     console.log(err || pretty(result.block));
   });
 }
@@ -158,27 +152,15 @@ function getUnconfirmedTransactions(options) {
 }
 
 function getTransactions(options) {
-  var params = {
-    blockId: options.blockId,
-    limit: options.limit,
-    orderBy: options.sort,
-    offset: options.offset,
-    type: options.type,
-    senderPublicKey: options.senderPublicKey,
-    senderId: options.senderId,
-    recipientId: options.recipientId,
-    amount: options.amount,
-    fee: options.fee,
-    message: options.message
-  };
-  getApi().get('/api/transactions/', params, function (err, result) {
+  let request = querystring.stringify(options);
+  getApi().get('/api/v2/transactions?' + request, null, function (err, result) {
     console.log(err || pretty(result.transactions));
   });
 }
 
 function getTransaction(id) {
   var params = {id: id};
-  getApi().get('/api/transactions/get', params, function (err, result) {
+  getApi().get('/api/v2/transactions/' + id, null, function (err, result) {
     console.log(err || pretty(result.transaction));
   });
 }
@@ -200,8 +182,7 @@ function sendMoney(options) {
     secret: options.secret,
     secondSecret: options.secondSecret,
     args: [
-      'XAS',
-      options.amount,
+      Number(options.amount),
       options.to
     ]
   });
@@ -216,7 +197,6 @@ function setName(options) {
     options.secret,
     options.secondSecret
   );
-  console.log(JSON.stringify(trs))
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -355,6 +335,65 @@ function transaction(options) {
     secondSecret: options.secondSecret,
     args: JSON.parse(options.args)
   })
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+/* function propose(options) {
+  var trs = aschJS.proposal.propose({
+    title: options.title, 
+    desc: options.desc,
+    endHeight: options.endHeight
+   },options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+} */
+
+function registergateway(options) {
+  var trs = aschJS.proposal.registergateway({
+    title: options.title, 
+    desc: options.desc,
+    endHeight: Number(options.endHeight),
+    name: options.name,
+    symbol: options.symbol,
+    currencyDesc: options.currencyDesc,
+    precision: options.precision || 8,
+    minimumMembers: options.minimumMembers || 3,
+    updateInterval: options.updateInterval || 8640
+   },options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}activateproposal
+
+function activateproposal(options) {
+  var trs = aschJS.proposal.activate({
+    tid: options.tid
+   },options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function initgateway(options) {
+  var trs = aschJS.proposal.initgateway({
+    name: options.name,
+    members: JSON.parse('[' + options.members.split(',').map(function(word){
+    return '"' + word.trim() + '"';
+}).join(',')
+ +']')
+   },options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
+function registermember(options) {
+  var trs = aschJS.gateway.registerMember({
+    gateway: options.gateway
+   },options.secret, options.secondSecret)
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
@@ -511,11 +550,8 @@ module.exports = function(program) {
     .description("get blocks")
     .option("-o, --offset <n>", "")
     .option("-l, --limit <n>", "")
-    .option("-r, --reward <n>", "")
-    .option("-f, --totalFee <n>", "")
-    .option("-a, --totalAmount <n>", "")
-    .option("-g, --generatorPublicKey <publicKey>", "")
-    .option("-s, --sort <field:mode>", "height:asc, totalAmount:asc, totalFee:asc")
+    .option("-t, --transactions <boolean>", "If this keyword is added with transactions=true then the block will be accompanied by transaction information")
+    .option("-s, --orderBy <field:mode>", "height:asc, totalAmount:asc, totalFee:asc")
     .action(getBlocks);
     
   program
@@ -546,21 +582,16 @@ module.exports = function(program) {
     .option("-k, --key <sender public key>", "")
     .option("-a, --address <address>", "")
     .action(getUnconfirmedTransactions);
-    
+
   program
     .command("gettransactions")
     .description("get transactions")
-    .option("-b, --blockId <id>", "")
     .option("-o, --offset <n>", "")
     .option("-l, --limit <n>", "")
     .option("-t, --type <n>", "transaction type")
-    .option("-s, --sort <field:mode>", "")
-    .option("-a, --amount <n>", "")
-    .option("-f, --fee <n>", "")
+    .option("-s, --orderBy <field:mode>", "Sort by")
     .option("-m, --message <message>", "")
-    .option("--senderPublicKey <key>", "")
     .option("--senderId <id>", "")
-    .option("--recipientId <id>", "")
     .action(getTransactions);
     
   program
@@ -728,4 +759,56 @@ module.exports = function(program) {
     .option("-m, --message <message>", "")
     .option("-f, --fee <fee>", "transaction fee")
     .action(transaction);
+
+/* Only proposals with a type (topic) set can be done  
+  program
+    .command("propose")
+    .description("propose a proposal")
+    .option("-e, --secret <secret>", "")
+    .option("-t, --title <title>", "Title of the proposal (10-100 chars)") 
+    .option("-d, --desc <description>", "Description of the proposal") 
+    .option("-h, --endHeight <height>", "Proposal end date")
+    .action(propose);
+*/
+
+  program
+    .command("registergateway")
+    .description("register a gateway")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-t, --title <title>", "Title of the Gateway (10-100 chars)") 
+    .option("-d, --desc <description>", "Description of the Gateway") 
+    .option("-h, --endHeight <height>", "Proposal end date")
+    .option("-n, --name <name>", "Name of the currency (3-16 uppercase and lowercase chars)")
+    .option("-s, --symbol <symbol>", "Howto call the issued currency")
+    .option("-c, --currencyDesc <Description>", "description of the currency")
+    .option("-p, --precision <precision>", "precision of the currency")
+    .option("-m, --minimumMembers <minimumMembers>", "The minimum number of members of the gateway, the range of this value should be an integer between 3-33")
+    .option("-u, --updateInterval <updateInterval>", "update frequency, this value Should be greater than or equal to 8640") 
+    .action(registergateway);
+
+  program
+    .command("activateproposal")
+    .description("activate a proposal")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-t, --tid <tid>", "The tid of the proposal")
+    .action(activateproposal);
+
+  program
+    .command("initgateway")
+    .description("register a gateway")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-n, --name <name>", "Name of the currency / gateway (3-16 uppercase and lowercase chars)")
+    .option("-m, --members <addressMember1, addressMember2, addressMember3, ...>", "csv list of the member addresses")
+    .action(initgateway);
+
+  program
+    .command("registermember")
+    .description("register a member for a gateway")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-g, --gateway <gateway>", "the name of the gateway")
+    .action(registermember);
 }
