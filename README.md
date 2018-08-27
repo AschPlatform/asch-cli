@@ -68,7 +68,16 @@ n stable
     peerstat                               analyze block height of all peers
     delegatestat                           analyze delegates status
     ipstat                                 analyze peer ip info
-
+    ~~propose [options]       	   propose a proposal~~
+    registergateway [options]		   register a gateway
+    activateproposal [options]             activate a proposal
+    initgateway [options]                  initiate a gateway
+    updatemember [options] 		   update a member of a gateway	
+    revokegateway [options]                revoke a gateway
+    registermember [options]	           register a member for a gateway
+    upvoteproposal [options]	           vote for a proposal
+	
+ 
   Options:
 
     -h, --help         output usage information
