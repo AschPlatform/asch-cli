@@ -395,6 +395,15 @@ function activateproposal(options) {
   });
 }
 
+function upvoteproposal(options) {
+  var trs = aschJS.proposal.upvote({
+    tid: options.tid
+   },options.secret, options.secondSecret)
+  getApi().broadcastTransaction(trs, function (err, result) {
+    console.log(err || result.transactionId)
+  });
+}
+
 function initgateway(options) {
   var trs = aschJS.proposal.initgateway({
     name: options.name,
@@ -837,4 +846,12 @@ module.exports = function(program) {
     .option("-s, --secondSecret <secret>", "")
     .option("-g, --gateway <gateway>", "the name of the gateway")
     .action(registermember);
+
+  program
+    .command("upvoteproposal")
+    .description("activate a proposal")
+    .option("-e, --secret <secret>", "")
+    .option("-s, --secondSecret <secret>", "")
+    .option("-t, --tid <tid>", "The tid of the proposal")
+    .action(upvoteproposal);
 }
