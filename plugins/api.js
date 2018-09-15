@@ -297,7 +297,7 @@ function downvote(options) {
 }
 
 function setSecondSecret(options) {
-  var trs = aschJS.signature.createSignature(options.secret, options.secondSecret);
+  var trs = aschJS.basic.setSecondSecret(options.secret, options.secondSecret);
   getApi().broadcastTransaction(trs, function (err, result) {
     console.log(err || result.transactionId)
   });
