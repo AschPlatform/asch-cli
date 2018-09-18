@@ -1,29 +1,27 @@
-
-var program = require("commander");
-
-var fs = require("fs");
-var path = require("path");
-var package = require('./package.json');
+const program = require('commander')
+const fs = require('fs')
+const path = require('path')
+const packageJson = require('./package.json')
 
 function main() {
-    var default_host = process.env.ASCH_HOST || '127.0.0.1';
-    var default_port = process.env.ASCH_PORT || 4096;
-    program.version(package.version)
-        .option('-H, --host <host>', 'Specify the hostname or ip of the node, default: '  + default_host, default_host)
-        .option('-P, --port <port>', 'Specify the port of the node, default: ' + default_port, default_port)
-        .option('-M, --main', 'Specify the mainnet, default: false')
-    
-    var plugins = fs.readdirSync(path.join(__dirname, 'plugins'));
-    plugins.forEach(function (el) {
-        if (el.endsWith('js')) {
-            require('./plugins/' + el)(program);
-        }
-    });
+  const defaultHost = process.env.ASCH_HOST || '127.0.0.1'
+  const defaultPort = process.env.ASCH_PORT || 4096
+  program.version(packageJson.version)
+    .option('-H, --host <host>', `Specify the hostname or ip of the node, default: ${defaultHost}`, defaultHost)
+    .option('-P, --port <port>', `Specify the port of the node, default: ${defaultPort}`, defaultPort)
+    .option('-M, --main', 'Specify the mainnet, default: false')
 
-    if (!process.argv.slice(2).length) {
-        program.outputHelp();
+  const plugins = fs.readdirSync(path.join(__dirname, 'plugins'))
+  plugins.forEach((el) => {
+    if (el.endsWith('js')) {
+      require(`./plugins/${el}`)(program)
     }
-    program.parse(process.argv);
+  })
+
+  if (!process.argv.slice(2).length) {
+    program.outputHelp()
+  }
+  program.parse(process.argv)
 }
 
-main();
+main()

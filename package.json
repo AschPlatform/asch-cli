@@ -31,6 +31,7 @@
     "inquirer": "^3.3.0",
     "js-nacl": "0.6.0",
     "request": "^2.62.0",
+    "request-promise": "^4.2.2",
     "rmdir": "^1.1.0",
     "shelljs": "^0.8.1",
     "valid-url": "1.0.9"
